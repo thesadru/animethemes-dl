@@ -3,7 +3,6 @@ import time;start = time.time()
 import os
 import sys
 import json
-import subprocess
 import string
 from mp3_tagger import MP3File, VERSION_1, VERSION_2
 import requests
@@ -114,7 +113,6 @@ def get_download_data(username,statuses=[1,2],anilist=False,mal_args={}):
     # [{"filename":"...","mirrors":[...],"metadata":{...}},...]
     out = []
     data = get_proper(username,anilist,**mal_args)
-    
     fprint('parse','getting download data')
     for status in statuses:
         for anime in data[status]:
@@ -134,13 +132,13 @@ def get_download_data(username,statuses=[1,2],anilist=False,mal_args={}):
 
 def convert_ffmpeg(webm_filename,mp3_filename=None,save_folder=None):
     """
-    convert a webm file to mp3
+    convert a webm file to a different tyoe
     """
     if mp3_filename is None:
         mp3_filename = webm_filename[:-5]
     if save_folder is not None:
         mp3_filename = os.path.join(save_folder,os.path.basename(mp3_filename))
-    mp3_filename += '.mp3'
+    mp3_filename += '.'+Opts.Download.audio_format
     loglevel = 'quiet' if Opts.Print.quiet else 'warning'
     os.system(f'ffmpeg -i "{webm_filename}" "{mp3_filename}" -y -v quiet -stats -loglevel {loglevel}')
     return mp3_filename
@@ -161,6 +159,11 @@ def add_metadata(path,metadata,add_coverart):
 '''
     
 def add_metadata(path,metadata,version=0):
+    '''
+    returns True if succesful, False if not
+    '''
+    if not path.endswith('.mp3'):
+        return False
     audiofile = MP3File(path)
     if version == 1:
         audiofile.set_version(VERSION_1)
@@ -172,6 +175,7 @@ def add_metadata(path,metadata,version=0):
     audiofile.album = metadata["album"]
     audiofile.title = metadata["title"]
     audiofile.year = str(metadata["year"])
+    return True
 
 def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=False,no_spaces=False):
     if webm_folder is None:
@@ -222,7 +226,6 @@ def batch_download(
 ):
     fprint('progress','initializing program')
     download_data = get_download_data(username,statuses,anilist)
-    json.dump(download_data,open('animethemes-dl.json','w'),indent=4)
     download_multi_theme(download_data,webm_folder,mp3_folder)
     fprint('progress','finished downloading')
 
