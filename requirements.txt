@@ -1,0 +1,4 @@
+pySmartDl
+mp3-tagger
+requests
+colorama
