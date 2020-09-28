@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from downloader import to_mal_priority,batch_download
 from printer import fprint
 from globals import Opts
