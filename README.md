@@ -34,6 +34,25 @@ variables are:
 %S = song name (spaced)
 %e = extension [webm | mp3]
 ```
+# preffered tags
+You can value some tags over other by adding it to the preffered tags.
+They are valued by asigning points to them, like this: `['NC','BD','720']` will be: `NC:3, BD:2, 720:1`.
+By default more tags will be put higher.
+avalible tags:
+
+| Tag	  | Meaning |
+|:-------:|:--------|
+| NC	  | No captions/no credits |
+| Subbed  |	Video includes subtitles of dialogue |
+| Lyrics  |	Video includes English lyrics as subtitles |
+| Cen	  | Video is censored |
+| Uncen	  | Video is uncensored from original broadcast |
+| 60FPS	  | Video is 60 frames per second |
+| Trans	  | Part of the anime episode transitions into the video |
+| BD	  | Video is sourced from a Blu-ray disc |
+| 420     | 420p |
+| 720	  | 720p |
+| 1080	  | 1080p |
 # how does it work?
 This code grabs your animelist data, filters it based off your settings, puts it through an api and then downloads it
 - get your anime data
@@ -45,8 +64,6 @@ This code grabs your animelist data, filters it based off your settings, puts it
   - convert to mp3 with ffmpeg
 # TODO
 - code optimizations
-- network optimizations
-- higher usability with importing
 - download only one song
 - settings grabbed from a file
-- set up preffered
+- different audio file

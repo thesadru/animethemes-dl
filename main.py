@@ -1,4 +1,5 @@
-from downloader import *
+from downloader import to_mal_priority,batch_download
+from printer import fprint
 from globals import Opts
 from os.path import realpath
 import argparse
@@ -55,14 +56,17 @@ statuses.add_argument('--planned',
     help="Download anime that are planned")
 
 folders = parser.add_argument_group('save folders',"If a folder is not set, files will not be downloaded")
-folders.add_argument('-v','--webm','--webm-folder',
+folders.add_argument('-v','--video','--video-folder',
     type=realpath,
     default=None,
     help="video save folder")
-folders.add_argument('-a','--mp3','--mp3-folder',
+folders.add_argument('-a','--audio','--audio-folder',
     type=realpath,
     default=None,
     help="audio save folder")
+folders.add_argument('--audio-format',
+    default='mp3',
+    help="change the audio format (without a .), default is `mp3`")
 
 download = parser.add_argument_group('download filters')
 download.add_argument('-r','--no-redownload',
@@ -86,7 +90,10 @@ download.add_argument('--metadata','--metadata-version',
     choices=[0,1,2],
     help="ID3 version (0 meaning both)")
 download.add_argument('-p','--preffered',
-    help="Preffered tags (uncompleted)")
+	type=lambda x: x.lower(),
+	default=[],
+	nargs='+',
+    help="Preffered tags for themes, look at the README for all avalible tags. Seperate tags by space, with the most wanted at the start.")
 
 printer = parser.add_argument_group('print arguments')
 printstyle = printer.add_mutually_exclusive_group()
@@ -101,19 +108,17 @@ args = parser.parse_args()
 
 args.status = args.status or []
 args.status = [1,2]+args.status
-Opts.Print.quiet = args.quiet
-Opts.Print.no_color = args.no_color
 
 Opts.update(**args.__dict__)
 print(Opts.settings())
 
-if args.webm is None and args.mp3 is None:
+if args.video is None and args.audio is None:
     fprint('error','no save folder set')
     quit()
 
 batch_download(
     args.username,
     args.status,
-    args.webm,args.mp3,
+    args.video,args.audio,
     args.anilist
 )
