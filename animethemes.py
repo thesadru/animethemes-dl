@@ -28,40 +28,17 @@ query userList($user: String) {
 }
 """
 
-class MirrorSorter:
-    def __init__(self, obj, *args):
-        self.obj = obj
-    def __lt__(self, other):
-        return self.cmp(self.obj, other.obj) < 0
-    def __gt__(self, other):
-        return self.cmp(self.obj, other.obj) > 0
-    def __eq__(self, other):
-        return self.cmp(self.obj, other.obj) == 0
-    def __le__(self, other):
-        return self.cmp(self.obj, other.obj) <= 0  
-    def __ge__(self, other):
-        return self.cmp(self.obj, other.obj) >= 0
-    def __ne__(self, other):
-        return self.cmp(self.obj, other.obj) != 0
-    @staticmethod
-    def cmp(x,y):
-        # swap them because sort works weirdly
-        x,y = y['quality'],x['quality']
-        
-        # total points
-        n = 0
-        # points start from highest to lowest
-        p = len(Opts.Download.preffered)
-        for i in Opts.Download.preffered:
-            if i in x:
-                n += p
-            if i in y:
-                n -= 1
-            p -= 1
-        # if they are the same, simply return the one with more tags
-        if n == 0:
-            return x.count(',')+(len(x)>0) - y.count(',')+(len(y)>0)
-        return n
+def get_mirror_value(x):
+  x = x['quality'].lower()
+  
+  n = 0
+  p = len(Opts.Download.preffered)
+  for i in Opts.Download.preffered:
+      if i in x:
+          n += p
+      p -= 1
+  n += (x.count(',')+(len(x)>0))/10
+  return n
 
 
 def themes_get(*args):
@@ -73,6 +50,7 @@ def themes_get(*args):
         r.raise_for_status()
 
 def get_themes(username,type='mal'):
+    Opts.Download.preffered = [i.lower() for i in Opts.Download.preffered]
     data = themes_get(type,username)
     for i,anime in enumerate(data):
         new_themes = {}
@@ -89,11 +67,13 @@ def get_themes(username,type='mal'):
             else:
                 theme['type'] = type_short
                 new_themes[type_short] = theme
-                
+        
         data[i]["short_title"] = (theme["mirrors"][0]["mirror"][30:].split('-')[0])
+        new_themes_parsed = []
         for theme in new_themes.values():
-            theme['mirrors'].sort(key=MirrorSorter)
-            data[i]['themes'].append(theme)
+            theme['mirrors'].sort(key=get_mirror_value,reverse=True)
+            new_themes_parsed.append(theme)
+        data[i]['themes'] = new_themes_parsed
             
     return data
 
