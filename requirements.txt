@@ -1,3 +1,4 @@
 pySmartDl
-eyed3
+mp3-tagger
 requests
+colorama

@@ -1,111 +1,119 @@
-from pySmartDL import SmartDL
-import time;start = time.time()
-import os
-import json
-import subprocess
-import string
-import eyed3
-import requests
-from animethemes import get_proper_mal
-
-FILENAME_BAD = set('#%&{}\\<>*?/$!\'":@+`|')
-FILENAME_BANNED = set('<>:"/\\|?*')
-
-def generate_filename(anime_name,song_name,theme_type,filetype='.webm'):
-    """
-    generate a filename
-    <anime_name> <OP/ED> (<song_name>).webm
-    """
-    return f"{anime_name} {theme_type} ({song_name}){filetype}"
-
-def remove_bad_chars(s):
-    r = ''
-    for i in s:
-        if i not in FILENAME_BANNED:
-            r += i
-    return r
-
-def parse_download_data(anime_data):
-    fil_anititle = remove_bad_chars(anime_data["short_title"])
-    for theme in anime_data["themes"]:
-        mirror = theme["mirrors"][0]
-        mirrors = [i["mirror"] for i in theme["mirrors"]]
-        url = mirror["mirror"]
-        tags = mirror["quality"].split(', ')
-        fil_thetitle = remove_bad_chars(theme["title"])
-        filename = generate_filename(
-            fil_anititle,fil_thetitle,theme["type"])
-        
-        yield {
-            "filename":filename,
-            "mirrors":mirrors,
-            "metadata":{
-                "title":theme["title"],
-                "album":anime_data["title"],
-                "year":anime_data["year"],
-                "genre":145
-            }
-        }
-
-def get_download_data(username,mal_args={},statuses=[1,2]):
-    # [{"filename":"...","mirrors":[...],"metadata":{...}},...]
-    out = []
-    data = get_proper_mal(username,**mal_args)
-    for status in statuses:
-        for anime in data[status]:
-            for theme in parse_download_data(anime):
-                theme["metadata"]["cover art"] = anime["cover"]
-                out.append(theme)
-    return out
-
-def convert_ffmpeg(webm_filename,mp3_filename=None,save_folder=None):
-    """
-    convert a webm file to mp3
-    """
-    if mp3_filename is None:
-        mp3_filename = webm_filename[:-5]
-    if save_folder is not None:
-        mp3_filename = os.path.join(save_folder,os.path.basename(mp3_filename))
-    mp3_filename += '.mp3'
-    os.system(r'ffmpeg ' + f'-i "{webm_filename}" "{mp3_filename}" -y -c:a libmp3lame -b:a 128k -v quiet -stats -loglevel panic')
-    return mp3_filename
-    
-
-def add_metadata(path,metadata):
-    audiofile = eyed3.load(path)
-    if (audiofile.tag == None):
-        audiofile.initTag()
-    
-    audiofile.tag.album = metadata["album"]
-    audiofile.tag.title = metadata["title"]
-    audiofile.tag.year = metadata["year"]
-    image = requests.get(metadata["cover art"]).text.encode()
-    audiofile.tag.images.set(3, image, 'image/jpeg')
-    #audiofile.tag.genre.set(145)
-
-    audiofile.tag.save()
-
-def download_theme(theme_data,webm_folder=None,mp3_folder=None):
-    if webm_folder is None:
-        filename = os.path.join(mp3_folder,theme_data["filename"])
-    else:
-        filename = os.path.join(webm_folder,theme_data["filename"])
-    obj = SmartDL(theme_data["mirrors"],filename)
-    obj.start()
-    dest = obj.get_dest()
-    if mp3_folder is not None:
-        mp3dest = convert_ffmpeg(dest,save_folder=mp3_folder)
-        add_metadata(mp3dest,theme_data["metadata"])
-    if webm_folder is None:
-        os.remove(dest)
-    
-    return {"mp3":mp3dest,"webm":dest}
+from downloader import *
+from globals import Opts
+from os.path import realpath
+import argparse
+import sys
 
 
-if __name__ == "__main__":
-    x = get_download_data('sadru')
-    with open('animethemes-dl.json','w') as file:
-        json.dump(x,file,indent=4)
-    
-    x = download_theme(x[0],mp3_folder='mp3_folder')
-    print(x)
+__doc__ = """
+Batch downloads themes from every anime you have watched with themes.moe.
+Supports multiple filters, adding metadata and smart file naming.
+
+requirements:
+You must have ffmpeg installed in the same folder or on PATH.
+"""
+
+parser = argparse.ArgumentParser(
+    description=__doc__,
+    epilog="Check the README.md if there are problems.",
+    prog='animethemes-dl'
+)
+
+parser.add_argument('username',
+    help="Your animelist username")
+parser.add_argument('--anilist','--al',
+    action="store_true",
+    help="Use Anilist instead of MyAnimeList")
+
+animelist = parser.add_argument_group('animelist filters')
+animelist.add_argument('--minscore',
+    type=int,
+    default=0,
+    choices=range(11),
+    help="Minimum score that an anime must have to be downloaded (uses 1-10 scale)")
+animelist.add_argument('--minpriority',
+    type=to_mal_priority,
+    default=0,
+    choices=[0,1,2,'Low','Medium','High'],
+    help="Minimum priority that an anime must have to be downloaded")
+
+statuses = parser.add_argument_group('status filters')
+statuses.add_argument('--on-hold',
+    const=3,
+    dest='status',
+    action='append_const',
+    help="Download anime that are on-hold")
+statuses.add_argument('--dropped',
+    const=4,
+    dest='status',
+    action='append_const',
+    help="Download anime that are dropped")
+statuses.add_argument('--planned',
+    const=6,
+    dest='status',
+    action='append_const',
+    help="Download anime that are planned")
+
+folders = parser.add_argument_group('save folders',"If a folder is not set, files will not be downloaded")
+folders.add_argument('-v','--webm','--webm-folder',
+    type=realpath,
+    default=None,
+    help="video save folder")
+folders.add_argument('-a','--mp3','--mp3-folder',
+    type=realpath,
+    default=None,
+    help="audio save folder")
+
+download = parser.add_argument_group('download filters')
+download.add_argument('-r','--no-redownload',
+    action='store_true',
+    help="Does not redownload themes that are already downloaded")
+download.add_argument('-d','--no-dialogue','--no-spoiler',
+    action='store_true',
+    help="Does not download themes that have dialogue in them (unreliable!)")
+download.add_argument('-s','--sfw','--no-nsfw',
+    action='store_true',
+    help="Does not download themes that are nsfw")
+download.add_argument('-f','--filename',
+    default='',
+    help="how the filename should be generated, reffer to the README for exact instructions")
+download.add_argument('--ascii',
+    action='store_true',
+    help="no special characters will be in the filename, only ascii chars")
+download.add_argument('--metadata','--metadata-version',
+    type=int,
+    default=0,
+    choices=[0,1,2],
+    help="ID3 version (0 meaning both)")
+download.add_argument('-p','--preffered',
+    help="Preffered tags (uncompleted)")
+
+printer = parser.add_argument_group('print arguments')
+printstyle = printer.add_mutually_exclusive_group()
+printstyle.add_argument('-c','--no-color','--no-colored-print',
+    action='store_true',
+    help="Does not print in color")
+printstyle.add_argument('-q','--quiet','--no-print',
+    action='store_true',
+    help="Does not print to console")
+
+args = parser.parse_args()
+
+args.status = args.status or []
+args.status = [1,2]+args.status
+Opts.Print.quiet = args.quiet
+Opts.Print.no_color = args.no_color
+
+Opts.update(**args.__dict__)
+print(Opts.settings())
+
+if args.webm is None and args.mp3 is None:
+    fprint('error','no save folder set')
+    quit()
+
+batch_download(
+    args.username,
+    args.status,
+    args.webm,args.mp3,
+    args.anilist
+)

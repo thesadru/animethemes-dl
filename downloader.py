@@ -1,0 +1,232 @@
+from pySmartDL import SmartDL
+import time;start = time.time()
+import os
+import sys
+import json
+import subprocess
+import string
+from mp3_tagger import MP3File, VERSION_1, VERSION_2
+import requests
+from animethemes import get_proper
+from printer import fprint
+from globals import Opts
+
+FILENAME_BAD = set('#%&{}\\<>*?/$!\'":@+`|')
+FILENAME_BANNED = set('<>:"/\\|?*')
+FILENAME_ALLOWEDASCII = set(string.printable).difference(FILENAME_BANNED)
+
+'''
+def generate_filename(anime_name,song_name,theme_type,filetype='.webm'):
+    """
+    generate a filename
+    <anime_name> <OP/ED> (<song_name>).webm
+    """
+    return f"{anime_name} {theme_type} ({song_name}){filetype}"
+'''
+def generate_filename(
+    anime_name_short,anime_name,
+    song_name,theme_type,
+    filetype='webm'
+):
+    if Opts.Download.filename:
+        filename = Opts.Download.filename
+    else:
+        filename =  f"%a %t (%S).%e"
+    translate = {
+        '%':'%',
+        'a':anime_name_short,
+        'A':anime_name,
+        't':theme_type,
+        's':song_name.replace(' ','_'),
+        'S':song_name,
+        'e':filetype
+    }
+    out = ''
+    i = 0
+    while i < len(filename):
+        if filename[i] == '%':
+            out += translate[filename[i+1]]
+            i += 2
+        else:
+            out += filename[i]
+            i += 1
+    return out
+    
+    
+
+def to_mal_priority(arg,no_raise=True):
+    if arg in {0,1,2}:
+        return arg
+    elif arg in '012':
+        return int(arg)
+    try:
+        return {
+            "low":0,
+            "medium":1,
+            "high":2
+        }[arg.lower()]
+    except KeyError:
+        return arg
+
+def remove_bad_nonascii(s):
+    r = ''
+    for i in s:
+        if i in FILENAME_ALLOWEDASCII:
+            r += i
+    return r
+            
+
+def remove_bad_chars(s):
+    if Opts.Download.ascii:
+        return remove_bad_nonascii(s)
+    
+    r = ''
+    for i in s:
+        if i not in FILENAME_BANNED:
+            r += i
+    return r
+
+def parse_download_data(anime_data):
+    fil_anititles = remove_bad_chars(anime_data["short_title"])
+    fil_anititlel = remove_bad_chars(anime_data["title"])
+    for theme in anime_data["themes"]:
+        mirror = theme["mirrors"][0]
+        mirrors = [i["mirror"] for i in theme["mirrors"]]
+        url = mirror["mirror"]
+        tags = mirror["quality"].split(', ')
+        fil_thetitle = remove_bad_chars(theme["title"])
+        filename = generate_filename(
+            fil_anititles,fil_anititlel,fil_thetitle,theme["type"])
+        
+        yield {
+            "filename":filename,
+            "mirrors":mirrors,
+            "metadata":{
+                "title":theme["title"],
+                "album":anime_data["title"],
+                "year":anime_data["year"],
+                "genre":145,
+                "coverart":None
+            }
+        }
+
+def get_download_data(username,statuses=[1,2],anilist=False,mal_args={}):
+    # [{"filename":"...","mirrors":[...],"metadata":{...}},...]
+    out = []
+    data = get_proper(username,anilist,**mal_args)
+    
+    fprint('parse','getting download data')
+    for status in statuses:
+        for anime in data[status]:
+            if (anime['mal_data']['score'] < Opts.Animelist.minscore or
+                to_mal_priority(anime['mal_data']['priority_string']) < Opts.Animelist.minpriority
+            ):
+                continue
+            for theme,unparsed in zip(parse_download_data(anime),anime['themes']):
+                if (('NSFW' in unparsed['notes'] and Opts.Download.sfw) or
+                    ('Spoiler' in unparsed['notes'] and Opts.Download.no_dialogue)
+                ):
+                    continue
+                
+                theme["metadata"]["cover art"] = anime["cover"]
+                out.append(theme)
+    return out
+
+def convert_ffmpeg(webm_filename,mp3_filename=None,save_folder=None):
+    """
+    convert a webm file to mp3
+    """
+    if mp3_filename is None:
+        mp3_filename = webm_filename[:-5]
+    if save_folder is not None:
+        mp3_filename = os.path.join(save_folder,os.path.basename(mp3_filename))
+    mp3_filename += '.mp3'
+    loglevel = 'quiet' if Opts.Print.quiet else 'warning'
+    os.system(f'ffmpeg -i "{webm_filename}" "{mp3_filename}" -y -v quiet -stats -loglevel {loglevel}')
+    return mp3_filename
+    
+'''
+def add_metadata(path,metadata,add_coverart):
+    audiofile = eyed3.load(path)
+    if (audiofile.tag == None):
+        audiofile.initTag()
+    
+    audiofile.tag.album = metadata["album"]
+    audiofile.tag.title = metadata["title"]
+    audiofile.tag.year = metadata["year"]
+    if add_coverart:
+        image = requests.get(metadata["cover art"]).text.encode()
+        audiofile.tag.images.set(3, image, 'image/jpeg')
+    #audiofile.tag.genre = 145
+'''
+    
+def add_metadata(path,metadata,version=0):
+    audiofile = MP3File(path)
+    if version == 1:
+        audiofile.set_version(VERSION_1)
+        audiofile.genre = 145
+    elif version == 2:
+        audiofile.set_version(VERSION_2)
+        audiofile.genre = "Anime"
+    
+    audiofile.album = metadata["album"]
+    audiofile.title = metadata["title"]
+    audiofile.year = str(metadata["year"])
+
+def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=False,no_spaces=False):
+    if webm_folder is None:
+        filename = os.path.join(mp3_folder,theme_data["filename"])
+    else:
+        filename = os.path.join(webm_folder,theme_data["filename"])
+    if no_spaces:
+        filename = filename.replace(' ','_')
+    exwebm,exmp3 = os.path.isfile(filename),os.path.isfile(os.path.basename(filename)+'.webm')
+    
+    if not (exwebm and no_redownload):
+        fprint('download',theme_data['filename'])
+        obj = SmartDL(theme_data["mirrors"],filename,progress_bar=not Opts.Print.quiet)
+        obj.start()
+        dest = obj.get_dest()
+    else:
+        dest = filename
+    if mp3_folder is not None and not (exmp3 and no_redownload):
+        mp3dest = convert_ffmpeg(dest,save_folder=mp3_folder)
+        add_metadata(mp3dest,theme_data["metadata"])
+    else:
+        mp3dest = None
+    if webm_folder is None:
+        os.remove(dest)
+        dest = None
+    
+    return {"mp3":mp3dest,"webm":dest}
+
+def download_multi_theme(download_data,webm_folder=None,mp3_folder=None):
+    fprint('progress','started downloading')
+    if webm_folder is None and mp3_folder is None:
+        fprint('error','no save folder set')
+    if webm_folder and not os.path.isdir(webm_folder):
+        os.mkdir(webm_folder)
+    if mp3_folder and not os.path.isdir(mp3_folder):
+        os.mkdir(mp3_folder)
+    
+    for theme in download_data:
+        download_theme(
+            theme,webm_folder,mp3_folder,
+            Opts.Download.no_redownload,Opts.Download.no_dialogue)
+
+def batch_download(
+    username,
+    statuses=[1,2],
+    webm_folder=None,mp3_folder=None,
+    anilist=False
+):
+    fprint('progress','initializing program')
+    download_data = get_download_data(username,statuses,anilist)
+    json.dump(download_data,open('animethemes-dl.json','w'),indent=4)
+    download_multi_theme(download_data,webm_folder,mp3_folder)
+    fprint('progress','finished downloading')
+
+
+if __name__ == "__main__":
+    pass
+    
