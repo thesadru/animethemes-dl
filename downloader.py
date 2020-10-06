@@ -4,7 +4,8 @@ import os
 import sys
 import json
 import string
-from mp3_tagger import MP3File, VERSION_1, VERSION_2
+import eyed3
+from pprint import pprint
 import requests
 from animethemes import get_proper
 from printer import fprint
@@ -30,7 +31,7 @@ def generate_filename(
     if Opts.Download.filename:
         filename = Opts.Download.filename
     else:
-        filename =  f"%a %t (%S).%e"
+        filename =  f"%A %t (%S).%e"
     translate = {
         '%':'%',
         'a':anime_name_short,
@@ -90,9 +91,14 @@ def parse_download_data(anime_data):
     fil_anititlel = remove_bad_chars(anime_data["title"])
     for theme in anime_data["themes"]:
         mirror = theme["mirrors"][0]
-        mirrors = [i["mirror"] for i in theme["mirrors"]]
         url = mirror["mirror"]
         tags = mirror["quality"].split(', ')
+        if (
+            Opts.Download.sfw and 'NSFW' in theme['notes'] or
+            Opts.Download.no_dialogue and 'Trans' in tags
+        ):
+            continue
+        mirrors = [i["mirror"] for i in theme["mirrors"]]
         fil_thetitle = remove_bad_chars(theme["title"])
         filename = generate_filename(
             fil_anititles,fil_anititlel,fil_thetitle,theme["type"])
@@ -121,10 +127,6 @@ def get_download_data(username,statuses=[1,2],anilist=False,mal_args={}):
             ):
                 continue
             for theme,unparsed in zip(parse_download_data(anime),anime['themes']):
-                if (('NSFW' in unparsed['notes'] and Opts.Download.sfw) or
-                    ('Spoiler' in unparsed['notes'] and Opts.Download.no_dialogue)
-                ):
-                    continue
                 
                 theme["metadata"]["cover art"] = anime["cover"]
                 out.append(theme)
@@ -140,11 +142,13 @@ def convert_ffmpeg(webm_filename,mp3_filename=None,save_folder=None):
         mp3_filename = os.path.join(save_folder,os.path.basename(mp3_filename))
     mp3_filename += '.'+Opts.Download.audio_format
     loglevel = 'quiet' if Opts.Print.quiet else 'warning'
-    os.system(f'ffmpeg -i "{webm_filename}" "{mp3_filename}" -y -v quiet -stats -loglevel {loglevel}')
+    ffmpeg_path = Opts.Download.ffmpeg
+    os.system(f'{ffmpeg_path} -i "{webm_filename}" "{mp3_filename}" -y -stats -v quiet -loglevel {loglevel}')
     return mp3_filename
     
-'''
+
 def add_metadata(path,metadata,add_coverart):
+    fprint(f'adding metadata for v2.4'+(' with coverart' if add_coverart else ''))
     audiofile = eyed3.load(path)
     if (audiofile.tag == None):
         audiofile.initTag()
@@ -156,34 +160,14 @@ def add_metadata(path,metadata,add_coverart):
         image = requests.get(metadata["cover art"]).text.encode()
         audiofile.tag.images.set(3, image, 'image/jpeg')
     #audiofile.tag.genre = 145
-'''
     
-def add_metadata(path,metadata,version=0):
-    '''
-    returns True if succesful, False if not
-    '''
-    if not path.endswith('.mp3'):
-        return False
-    audiofile = MP3File(path)
-    if version == 1:
-        audiofile.set_version(VERSION_1)
-        audiofile.genre = 145
-    elif version == 2:
-        audiofile.set_version(VERSION_2)
-        audiofile.genre = "Anime"
-    
-    audiofile.album = metadata["album"]
-    audiofile.title = metadata["title"]
-    audiofile.year = str(metadata["year"])
-    return True
+    audiofile.tag.save()
 
-def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=False,no_spaces=False):
+def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=False):
     if webm_folder is None:
         filename = os.path.join(mp3_folder,theme_data["filename"])
     else:
         filename = os.path.join(webm_folder,theme_data["filename"])
-    if no_spaces:
-        filename = filename.replace(' ','_')
     exwebm,exmp3 = os.path.isfile(filename),os.path.isfile(os.path.basename(filename)+'.webm')
     
     if not (exwebm and no_redownload):
@@ -195,7 +179,7 @@ def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=Fal
         dest = filename
     if mp3_folder is not None and not (exmp3 and no_redownload):
         mp3dest = convert_ffmpeg(dest,save_folder=mp3_folder)
-        add_metadata(mp3dest,theme_data["metadata"])
+        add_metadata(mp3dest,theme_data["metadata"],Opts.Download.coverart)
     else:
         mp3dest = None
     if webm_folder is None:
@@ -216,7 +200,7 @@ def download_multi_theme(download_data,webm_folder=None,mp3_folder=None):
     for theme in download_data:
         download_theme(
             theme,webm_folder,mp3_folder,
-            Opts.Download.no_redownload,Opts.Download.no_dialogue)
+            Opts.Download.no_redownload)
 
 def batch_download(
     username,

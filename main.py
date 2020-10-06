@@ -73,9 +73,9 @@ download = parser.add_argument_group('download filters')
 download.add_argument('-r','--no-redownload',
     action='store_true',
     help="Does not redownload themes that are already downloaded")
-download.add_argument('-d','--no-dialogue','--no-spoiler',
+download.add_argument('-d','--no-dialogue','--no-trans',
     action='store_true',
-    help="Does not download themes that have dialogue in them (unreliable!)")
+    help="Does not download themes that have dialogue in them.")
 download.add_argument('-s','--sfw','--no-nsfw',
     action='store_true',
     help="Does not download themes that are nsfw")
@@ -85,11 +85,13 @@ download.add_argument('-f','--filename',
 download.add_argument('--ascii',
     action='store_true',
     help="no special characters will be in the filename, only ascii chars")
-download.add_argument('--metadata','--metadata-version',
-    type=int,
-    default=0,
-    choices=[0,1,2],
-    help="ID3 version (0 meaning both)")
+download.add_argument('--coverart','--add-coverart',
+    action='store_true',
+    help="Adds coverart to mp3 files")
+download.add_argument('--ffmpeg','--ffmpeg-path',
+    type=realpath,
+    default='ffmpeg',
+    help="Your ffmpeg path if it's not installed in PATH")
 download.add_argument('-p','--preffered',
 	type=lambda x: x.lower(),
 	default=[],

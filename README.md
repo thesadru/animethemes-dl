@@ -23,7 +23,7 @@ Note that owning and distributing the program itself is allowed.
 - run `python main.py -h` for help
 - run `python main.py <username> <settings>` to download your songs
 # filename naming
-Filename are by the default named `%a %t (%S).%e` which returns for example: `AppareRanman OP (I got it!).webm`
+Filename are by the default named `%A %t (%S).%e` which returns for example: `AppareRanman OP (I got it!).webm`
 variables are:
 ```
 %% = percent symbol ("%")
@@ -66,4 +66,4 @@ This code grabs your animelist data, filters it based off your settings, puts it
 - code optimizations
 - download only one song
 - settings grabbed from a file
-- different audio file
+- add track, artist and description metadata
