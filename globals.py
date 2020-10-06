@@ -21,7 +21,8 @@ class Opts:
 			filename='',
             audio_format='mp3',
 			ascii=False,
-			metadata=0,
+   			coverart=False,
+			ffmpeg='ffmpeg',
 			preffered=[],
 			**kwargs
 		):

@@ -28,19 +28,6 @@ query userList($user: String) {
 }
 """
 
-def get_mirror_value(x):
-  x = x['quality'].lower()
-  
-  n = 0
-  p = len(Opts.Download.preffered)
-  for i in Opts.Download.preffered:
-      if i in x:
-          n += p
-      p -= 1
-  n += (x.count(',')+(len(x)>0))/10
-  return n
-
-
 def themes_get(*args):
     url = THEMESURL+'/'.join(map(str,args))
     r = requests.get(url)
@@ -49,9 +36,30 @@ def themes_get(*args):
     else:
         r.raise_for_status()
 
+def get_mirror_value(mirror):
+    mirror = mirror['quality'].lower()
+      
+    value = 0
+    points = len(Opts.Download.preffered)
+    for i in Opts.Download.preffered:
+        if i in mirror:
+            value += points
+        points -= 1
+    if len(mirror) > 0:
+        value += (mirror.count(',')+1)/10
+    return value
+
 def get_themes(username,type='mal'):
     Opts.Download.preffered = [i.lower() for i in Opts.Download.preffered]
+    
+    t = time.time()
+    fprint('get','getting data from themes.moe',end='')
     data = themes_get(type,username)
+    fprint(' | '+str(int((time.time()-t)*1000))+'ms')
+    
+    t = time.time()
+    fprint('parse','sorting data',end='')
+    
     for i,anime in enumerate(data):
         new_themes = {}
         for theme in anime['themes']:
@@ -75,6 +83,7 @@ def get_themes(username,type='mal'):
             new_themes_parsed.append(theme)
         data[i]['themes'] = new_themes_parsed
             
+    fprint(' | '+str(int((time.time()-t)*1000))+'ms')
     return data
 
 def mal_get_short(username,**kwargs):
@@ -150,15 +159,11 @@ def get_proper(username,anilist=False,**mal_kwargs):
         list_data = mal_get(username,**mal_kwargs)
     fprint(' | '+str(int((time.time()-t)*1000))+'ms')
     
-    t = time.time()
-    fprint('get','getting data from themes.moe',end='')
     if anilist:
         themes_data = get_themes(username,'anilist')
     else:
         themes_data = get_themes(username,'mal')
-    fprint(' | '+str(int((time.time()-t)*1000))+'ms')
     
-    fprint('parse','sorting data for later use')
     mal_dict = {} # {12345:{'mal_data':{...},'status':1},...}
     for status,animes in enumerate(list_data):
         for anime in animes:
@@ -173,6 +178,7 @@ def get_proper(username,anilist=False,**mal_kwargs):
         mal_data = mal_dict[mal_id]['mal_data']
         anime['mal_data'] = mal_data
         mal_list[status].append(anime)
+        
     
     
     return mal_list
