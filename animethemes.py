@@ -93,6 +93,8 @@ def mal_get_short(username,**kwargs):
     if r.status_code == 200:
         return r.json()
     else:
+        if r.status_code == 500:
+            fprint('error','too many requests made, try again later')
         r.raise_for_status()
         
 

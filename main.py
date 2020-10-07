@@ -89,9 +89,11 @@ download.add_argument('--coverart','--add-coverart',
     action='store_true',
     help="Adds coverart to mp3 files")
 download.add_argument('--ffmpeg','--ffmpeg-path',
-    type=realpath,
     default='ffmpeg',
     help="Your ffmpeg path if it's not installed in PATH")
+download.add_argument('--local-convert',
+    action='store_true',
+    help="Converts files locally, instead of converting them on the server, good for a supercomputer.")
 download.add_argument('-p','--preffered',
 	type=lambda x: x.lower(),
 	default=[],
@@ -113,7 +115,7 @@ args.status = args.status or []
 args.status = [1,2]+args.status
 
 Opts.update(**args.__dict__)
-print(Opts.settings())
+print(Opts.get_settings())
 
 if args.video is None and args.audio is None:
     fprint('error','no save folder set')
