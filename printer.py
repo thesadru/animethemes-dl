@@ -18,11 +18,11 @@ def color_category(category):
     }[category]
     return '['+color+category+Style.RESET_ALL+']'
 
-def fprint(category,message=None,end='\n'):
+def fprint(category,message=None,start='',end='\n'):
     if Opts.Print.quiet:
         return
     if message is None:
-        sys.stdout.write(str(category)+'\n')
+        sys.stdout.write(start+str(category)+end)
     else:
-        message = color_category(category)+' '+str(message)+end
+        message = start+color_category(category)+' '+str(message)+end
         sys.stdout.write(message)
