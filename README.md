@@ -139,5 +139,4 @@ This code grabs your animelist data, filters it based off your settings, puts it
 # TODO
 - code optimizations
 - download only one song
-- settings grabbed from a file
 - add track, artist and description metadata
