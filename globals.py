@@ -19,11 +19,13 @@ class Opts:
             no_dialogue=False,
             sfw=False,
             filename='',
+            retry_forever=False,
             audio_format='mp3',
             ascii=False,
             coverart=False,
             ffmpeg='ffmpeg',
             local_convert=False,
+            try_both=False,
             preffered=[],
             **kwargs
         ):
