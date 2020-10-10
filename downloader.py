@@ -5,6 +5,8 @@ import sys
 import json
 import string
 import eyed3
+import threading
+import random
 from pprint import pprint
 import requests
 from animethemes import get_proper
@@ -146,6 +148,9 @@ def convert_ffmpeg(webm_filename,mp3_filename=None,save_folder=None):
     loglevel = 'quiet' if Opts.Print.quiet else 'warning'
     ffmpeg_path = Opts.Download.ffmpeg
     os.system(f'{ffmpeg_path} -i "{webm_filename}" "{mp3_filename}" -y -stats -v quiet -loglevel {loglevel}')
+    if not os.path.isfile(mp3_filename):
+        fprint('error',"ffmpeg didn't convert, check if it's in path or use --ffmpeg")
+        quit()
     return mp3_filename
     
 def add_metadata(path,metadata,add_coverart):
@@ -163,8 +168,20 @@ def add_metadata(path,metadata,add_coverart):
         audiofile.tag.images.set(3, image, 'image/jpeg')
     audiofile.tag.genre = 145
     
-    audiofile.tag.save()
-    fprint(' | '+str(int((time.time()-t)*1000))+'ms')
+    while True:
+        try:
+            audiofile.tag.save()
+            fprint(' | '+str(int((time.time()-t)*1000))+'ms')
+            return True
+        except Exception as e:
+            print(e)
+    # try:
+    #     audiofile.tag.save()
+    #     fprint(' | '+str(int((time.time()-t)*1000))+'ms')
+    #     return True
+    # except PermissionError as e:
+    #     fprint('error',f"couldn't add metadata: {e}",start='\n')
+    #     return False
 
 def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=False):
     # generate a folder to save webm files
@@ -195,9 +212,11 @@ def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=Fal
     else:
         webm_dest = filename
         remove_webm = False
-        
+    
     # download mp3 file if file does not exist
     if needmp3:
+        if not needwebm:
+            fprint('convert',theme_data['filename'])
         mp3dest = convert_ffmpeg(webm_dest,save_folder=mp3_folder)
         add_metadata(mp3dest,theme_data["metadata"],Opts.Download.coverart)
     else:
@@ -211,37 +230,112 @@ def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=Fal
     
     return {"mp3":mp3dest,"webm":webm_dest}
 
-def download_theme_audio_server(theme_data,mp3_folder=None,no_redownload=False,data_size=65536):
+_LAST_DOWNLOAD_TIME = 10.0
+def download_theme_audio_server(theme_data,mp3_folder=None,no_redownload=False,data_size=65536,timeout=30):
+    """
+    
+    returns:
+    filename (str)
+    empty str if no download was made
+    None if all downloads failed
+    """
+    def progress_bar():
+        """
+        this progress bar is completely fake, but it makes it feel like something is happening so that's cool
+        """
+        global _LAST_DOWNLOAD_TIME
+        START_TIME = time.time()
+        last_increment = last_decrement = time.time()
+        expected_remain = _LAST_DOWNLOAD_TIME
+        current_time = lambda: time.time() - START_TIME
+        def download_string(x,y,r=2):
+            x = str(x).split('.')
+            y = str(y).split('.')
+            x = x[0]+'.'+x[1][:r]
+            y = y[0]+'.'+y[1][:r]
+            return f'[*] {x}s / {y}s  '
+
+        while True:
+            fprint(download_string(current_time(),expected_remain),end='\r')
+            
+            # time updater
+            difference = expected_remain-current_time()
+            if difference < 1:
+                # never get it too close to the expected remain
+                expected_remain += 1
+                last_increment = time.time()
+            elif time.time() - last_increment > 0.5 and difference < 10:
+                # add time to make it look like it's updating
+                expected_remain += 1/(expected_remain-current_time())
+                last_increment = time.time()
+            elif time.time() - last_decrement > 2:
+                # remove some time because it feels good to make it faster
+                expected_remain -= 2*random.random() 
+                last_decrement = time.time()
+                
+            if STOP_PROGRESS_BAR:
+                break
+            if current_time() >= timeout:
+                fprint('error','download timed out')
+                return
+        
+        if FAKE_COMPLETE:
+            fprint(download_string(current_time(),current_time()))
+            _LAST_DOWNLOAD_TIME = current_time()
+        else:
+            fprint('')
+        
+        
     # generate a folder to save webm files
     short_filename = os.path.splitext(theme_data["filename"])[0]+'.mp3'
     filename = os.path.join(mp3_folder,short_filename)
-    
     
     # download mp3 file if file does not exist
     if not (no_redownload and os.path.isfile(filename)):
         fprint('download',short_filename)
         for mirror in theme_data['audio_mirrors']:
-            t = time.time()
-            fprint('requesting for a convert from a server',end='')
-            
+            STOP_PROGRESS_BAR = False
+            FAKE_COMPLETE = False
+            thread = threading.Thread(target=progress_bar)
+            thread.start()
             try:
                 r = requests.get(mirror)
-                fprint(' | '+str(int((time.time()-t)*1000))+'ms')
-                with open(filename, 'wb') as file:
-                    for data in r.iter_content(data_size): #64kiB
-                        file.write(data)
-                fprint('')
-                break
-            
+            except KeyboardInterrupt:
+                STOP_PROGRESS_BAR = True
+                thread.join()
+                quit()
             except Exception as e:
-                fprint('')
-                fprint('error',str(e))
-                return None
+                fprint('error',e)
+                FAKE_COMPLETE = True
+                STOP_PROGRESS_BAR = True
+                thread.join()
+                continue
                 
+            
+            if r.status_code != 200:
+                if r.status_code not in (500,404):
+                    FAKE_COMPLETE = True
+                STOP_PROGRESS_BAR = True
+                thread.join()
+                fprint('error',f'invalid mirror, got status code {r.status_code}')
+                continue
+            else:
+                FAKE_COMPLETE = True
+                STOP_PROGRESS_BAR = True
+                thread.join()
+            
+            with open(filename, 'wb') as file:
+                for data in r.iter_content(data_size): #64kiB
+                    file.write(data)
+            break
+        else:
+            fprint('error','all mirrors are invalid (press CTRL+C to stop program)')
+            return None
+        
         add_metadata(filename,theme_data["metadata"],Opts.Download.coverart)
         return filename
     else:
-        return None
+        return ''
 
 def download_multi_theme(download_data,webm_folder=None,mp3_folder=None):
     if webm_folder is None and mp3_folder is None:
@@ -251,18 +345,38 @@ def download_multi_theme(download_data,webm_folder=None,mp3_folder=None):
     if mp3_folder and not os.path.isdir(mp3_folder):
         os.mkdir(mp3_folder)
     
-    if Opts.Download.local_convert or webm_folder is not None:
-        fprint('progress','started downloading'+(' and converting' if mp3_folder is not None else ''))
-        for theme in download_data:
-            download_theme(
-                theme,webm_folder,mp3_folder,
-                Opts.Download.no_redownload)
+    download_chooser = (lambda mthd: 
+        download_theme_audio_server(
+            theme,mp3_folder,
+            Opts.Download.no_redownload)
+        if mthd == 0 else
+        download_theme(
+            theme,webm_folder,mp3_folder,
+            Opts.Download.no_redownload)
+    )
+    
+    # 0: external, 1: local
+    if webm_folder is not None:
+        mthd1,mthd2 = 1,1
+    elif Opts.Download.local_convert:
+        mthd1 = 1
+        mthd2 = int(not Opts.Download.try_both)
     else:
+        mthd1 = 0
+        mthd2 = int(Opts.Download.try_both)
+    
+    if mthd1 == 0:
         fprint('progress','started downloading audio files')
-        for theme in download_data:
-            download_theme_audio_server(
-                theme,mp3_folder,
-                Opts.Download.no_redownload)
+    else:
+        fprint('progress','started downloading'+(' and converting' if mp3_folder is not None else ''))
+        
+    for theme in download_data:
+        filename = None
+        while filename is None and Opts.Download.retry_forever:
+            filename = download_chooser(mthd1)
+            if filename is None:
+                filename = download_chooser(mthd2)
+    
 
 def batch_download(
     username,

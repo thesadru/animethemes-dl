@@ -82,6 +82,9 @@ download.add_argument('-s','--sfw','--no-nsfw',
 download.add_argument('-f','--filename',
     default='',
     help="how the filename should be generated, reffer to the README for exact instructions")
+download.add_argument('--retry-forever',
+    action='store_true',
+    help="Will forever retry downloading mirrors. (unreliable)")
 download.add_argument('--ascii',
     action='store_true',
     help="no special characters will be in the filename, only ascii chars")
@@ -94,10 +97,13 @@ download.add_argument('--ffmpeg','--ffmpeg-path',
 download.add_argument('--local-convert',
     action='store_true',
     help="Converts files locally, instead of converting them on the server, good for a supercomputer.")
+download.add_argument('--try-both','--try-both-download-methods',
+    action='store_true',
+    help="if a download method fails, tries the other one.")
 download.add_argument('-p','--preffered',
-	type=lambda x: x.lower(),
-	default=[],
-	nargs='+',
+    type=lambda x: x.lower(),
+    default=[],
+    nargs='+',
     help="Preffered tags for themes, look at the README for all avalible tags. Seperate tags by space, with the most wanted at the start.")
 
 printer = parser.add_argument_group('print arguments')
@@ -108,6 +114,9 @@ printstyle.add_argument('-c','--no-color','--no-colored-print',
 printstyle.add_argument('-q','--quiet','--no-print',
     action='store_true',
     help="Does not print to console")
+printstyle.add_argument('--print-settings',
+    action="store_true",
+    help="Prints settings when the script starts.")
 
 args = parser.parse_args()
 
@@ -115,7 +124,8 @@ args.status = args.status or []
 args.status = [1,2]+args.status
 
 Opts.update(**args.__dict__)
-print(Opts.get_settings())
+if args.print_settings: 
+    fprint('\n'.join([f'{k}={repr(v)}' for k,v in Opts.get_settings().items()]),end='\n\n')
 
 if args.video is None and args.audio is None:
     fprint('error','no save folder set')
