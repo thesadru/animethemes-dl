@@ -119,10 +119,10 @@ def parse_download_data(anime_data):
             }
         }
 
-def get_download_data(username,statuses=[1,2],anilist=False,mal_args={}):
+def get_download_data(username,statuses=[1,2],anilist=False,extra_ids=[],mal_args={}):
     # [{"filename":"...","mirrors":[...],"metadata":{...}},...]
     out = []
-    data = get_proper(username,anilist,**mal_args)
+    data = get_proper(username,anilist,extra_ids,**mal_args)
     fprint('parse','getting download data')
     for status in statuses:
         for anime in data[status]:
@@ -372,20 +372,22 @@ def download_multi_theme(download_data,webm_folder=None,mp3_folder=None):
         
     for theme in download_data:
         filename = None
-        while filename is None and Opts.Download.retry_forever:
+        allow_repeat = True
+        while filename is None and allow_repeat:
             filename = download_chooser(mthd1)
             if filename is None:
                 filename = download_chooser(mthd2)
-    
+            allow_repeat = Opts.Download.retry_forever          
 
 def batch_download(
     username,
     statuses=[1,2],
     webm_folder=None,mp3_folder=None,
-    anilist=False
+    anilist=False,
+    extra_ids=[]
 ):
     fprint('progress','initializing program')
-    download_data = get_download_data(username,statuses,anilist)
+    download_data = get_download_data(username,statuses,anilist,extra_ids)
     download_multi_theme(download_data,webm_folder,mp3_folder)
     fprint('progress','finished downloading')
 

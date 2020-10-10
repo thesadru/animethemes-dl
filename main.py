@@ -5,6 +5,7 @@ from globals import Opts
 from os.path import realpath
 import argparse
 import sys
+import json
 
 
 __doc__ = """
@@ -22,10 +23,20 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('username',
+    default='',
+    nargs='?',
     help="Your animelist username")
 parser.add_argument('--anilist','--al',
     action="store_true",
     help="Use Anilist instead of MyAnimeList")
+parser.add_argument('-s','--settings',
+    default=None,
+    type=realpath,
+    help="A settings file in json format. Check out README.md for more info.")
+parser.add_argument('-id','--id','--mal-ids',
+    type=int,
+    nargs='+',
+    help="mal id's of anime that should be also downloaded.")
 
 animelist = parser.add_argument_group('animelist filters')
 animelist.add_argument('--minscore',
@@ -76,7 +87,7 @@ download.add_argument('-r','--no-redownload',
 download.add_argument('-d','--no-dialogue','--no-trans',
     action='store_true',
     help="Does not download themes that have dialogue in them.")
-download.add_argument('-s','--sfw','--no-nsfw',
+download.add_argument('--sfw','--no-nsfw',
     action='store_true',
     help="Does not download themes that are nsfw")
 download.add_argument('-f','--filename',
@@ -114,7 +125,7 @@ printstyle.add_argument('-c','--no-color','--no-colored-print',
 printstyle.add_argument('-q','--quiet','--no-print',
     action='store_true',
     help="Does not print to console")
-printstyle.add_argument('--print-settings',
+printer.add_argument('--print-settings',
     action="store_true",
     help="Prints settings when the script starts.")
 
@@ -123,9 +134,24 @@ args = parser.parse_args()
 args.status = args.status or []
 args.status = [1,2]+args.status
 
-Opts.update(**args.__dict__)
+if args.settings is not None:
+    with open(args.settings) as file:
+        jargs = json.load(file)
+        Opts.update(**jargs)
+        for i in ('username','audio','video','status','print_settings','anilist'):
+            if i in jargs:
+                args.__setattr__(i,jargs[i])
+else:   
+    Opts.update(**args.__dict__)
+
+args.status.append(0)
+
 if args.print_settings: 
     fprint('\n'.join([f'{k}={repr(v)}' for k,v in Opts.get_settings().items()]),end='\n\n')
+
+if args.username is '' and len(args.id) == 0:
+    fprint('error','no username set')
+    quit()
 
 if args.video is None and args.audio is None:
     fprint('error','no save folder set')
@@ -135,5 +161,6 @@ batch_download(
     args.username,
     args.status,
     args.video,args.audio,
-    args.anilist
+    args.anilist,
+    args.id
 )

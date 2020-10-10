@@ -1,4 +1,4 @@
-import sys
+import sys,json
 
 class Opts:
     class Animelist:
@@ -39,6 +39,7 @@ class Opts:
         def update(cls,
             no_color=False,
             quiet=True,
+            print_settings=False,
             **kwargs
         ):
             kwargs = locals().copy()
@@ -65,3 +66,11 @@ class Opts:
                     
 
 Opts.update()
+
+
+if __name__ == '__main__':
+    if len(sys.argv) == 3 and sys.argv[1] == 'make_settings_file':
+        with open(sys.argv[2],'w') as file:
+            d = {'username':'','anilist':False,'audio':None,'video':None,'status':[1,2],'print_settings':False,'id':[]}
+            d.update(Opts.get_settings())
+            json.dump(d,file,indent=4)

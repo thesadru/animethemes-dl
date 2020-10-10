@@ -1,2 +1,3 @@
 .replit
-__pycache__
+__pychache__/
+settings.json
