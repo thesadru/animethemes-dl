@@ -5,7 +5,7 @@
   ![GitHub](https://img.shields.io/github/license/thesadru/animethemes-dl)
   ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/thesadru/animethemes-dl)
   ![GitHub last commit](https://img.shields.io/github/last-commit/thesadru/animethemes-dl)
-  ![GitHub Release](https://img.shields.io/github/release/thesadru/animethemes-dl)
+  ![GitHub Release](https://img.shields.io/github/v/release/thesadru/animethemes-dl?include_prereleases)
   [![Run on Repl.it](https://repl.it/badge/github/thesadru/animethemes-dl)](https://repl.it/github/thesadru/animethemes-dl)
 </div>
 
