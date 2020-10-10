@@ -5,7 +5,7 @@
   ![GitHub](https://img.shields.io/github/license/thesadru/animethemes-dl)
   ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/thesadru/animethemes-dl)
   ![GitHub last commit](https://img.shields.io/github/last-commit/thesadru/animethemes-dl)
-  ![GitHub Release](https://img.shields.io/github/release/thesadru/animethemes-dl)
+  ![GitHub Release](https://img.shields.io/github/v/release/thesadru/animethemes-dl?include_prereleases)
   [![Run on Repl.it](https://repl.it/badge/github/thesadru/animethemes-dl)](https://repl.it/github/thesadru/animethemes-dl)
 </div>
 
@@ -23,7 +23,6 @@ Note that owning and distributing the program itself is allowed.
 - run `python main.py -h` for help
 - run `python main.py <username> <settings>` to download your songs
 ## guide
-(ote that most of the following commands will not work, that's because username and save folder are missing
 you may need to use `python main.py` instead of animethemes-dl
 
 The most barebones download requires a username and a save folder.
@@ -32,6 +31,16 @@ Save folders can be set by `a` (audio) and `-v` (video).
 ```
 animethemes-dl sadru -a "themes"
 animethemes-dl sadru --anilist -v "anime oped"
+```
+
+Use `--settings` to get settings from a json file.
+```
+animethemes-dl --settings "settings.json"
+```
+
+If you want extra anime to be downloaded use `--id`
+```
+animethemes-dl --id 42364 31240
 ```
 
 Set the audio format with `--audio-format`. Works only if converting locally
@@ -127,6 +136,34 @@ avalible tags:
 | 420     | 420p |
 | 720	    | 720p |
 | 1080	  | 1080p |
+# settings file
+default settings look like:
+```json
+{
+    "username": "",
+    "anilist": false,
+    "audio": null,
+    "video": null,
+    "status": [1,2],
+    "print_settings": false,
+    "minscore": 0,
+    "minpriority": 0,
+    "no_redownload": false,
+    "no_dialogue": false,
+    "sfw": false,
+    "filename": "",
+    "retry_forever": false,
+    "audio_format": "mp3",
+    "ascii": false,
+    "coverart": false,
+    "ffmpeg": "ffmpeg",
+    "local_convert": false,
+    "try_both": false,
+    "preffered": [],
+    "no_color": false,
+    "quiet": true
+}
+```
 # how does it work?
 This code grabs your animelist data, filters it based off your settings, puts it through an api and then downloads it
 - get your anime data
