@@ -1,6 +1,14 @@
+"""
+global options
+"""
 import sys,json
 
 class Opts:
+    """
+    The options class
+    Uses a quirk of python to use easy global variables
+    DO NOT INITIALIZE
+    """
     class Animelist:
         @classmethod
         def update(cls,
