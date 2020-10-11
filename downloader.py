@@ -7,6 +7,7 @@ import os
 import eyed3
 import threading
 import requests
+import string
 from animethemes import get_proper
 from printer import fprint
 from globals import Opts
