@@ -1,3 +1,7 @@
+"""
+pulls from animethemes and MAL/AniList
+sort and modify the gotten list
+"""
 import requests
 import json
 import sys
@@ -28,8 +32,14 @@ query userList($user: String) {
 }
 """
 
-def themes_get(*args):
+def themes_get(*args,**kwargs):
+    """
+    get data from animethemes-api
+    args reffer to the url ('id',12345) -> URL/id/12345
+    kwargs reffer to the arguments (sort=3,x='w') -> ?sort=3&x=w
+    """
     url = THEMESURL+'/'.join(map(str,args))
+    url += '&'.join(k+'='+str(v) for k,v in kwargs.items())
     r = requests.get(url)
     if r.status_code == 200:
         return r.json()
@@ -37,6 +47,10 @@ def themes_get(*args):
         r.raise_for_status()
 
 def get_mirror_value(mirror):
+    """
+    get a value of the mirror with Opts.Download.preffered
+    adds extra points based on the amount of tags (0.1 for every tag)
+    """
     mirror = mirror['quality'].lower()
       
     value = 0
@@ -46,10 +60,14 @@ def get_mirror_value(mirror):
             value += points
         points -= 1
     if len(mirror) > 0:
-        value += (mirror.count(',')+1)/10
+        value += 0.1*(mirror.count(',')+1)
     return value
 
-def parse_theme(anime):
+def parse_anime(anime):
+    """
+    parses anime data
+    adds short_title and sorts mirrors
+    """
     new_themes = {}
     for theme in anime['themes']:
         
@@ -75,19 +93,26 @@ def parse_theme(anime):
     return anime
 
 def get_themes(username,type='mal'):
+    """
+    gets parsed themes with a username and type ['mal' | 'anilist]
+    """
     if username == '':
         return []
     Opts.Download.preffered = [i.lower() for i in Opts.Download.preffered]
     
     data = themes_get(type,username)
     for i,anime in enumerate(data):
-        data[i] = parse_theme(anime)
+        data[i] = parse_anime(anime)
 
     return data
 
 def mal_get_short(username,**kwargs):
+    """
+    gets a MAL list with a username
+    kwargs reffer to the arguments (sort=3,x='w') -> ?sort=3&x=w
+    """
     url = MALURL.format(user=username)+'?'
-    url = url + '&'.join(k+'='+str(v) for k,v in kwargs.items())
+    url += '&'.join(k+'='+str(v) for k,v in kwargs.items())
     r = requests.get(url)
     if r.status_code == 200:
         return r.json()
@@ -98,6 +123,9 @@ def mal_get_short(username,**kwargs):
         
 
 def mal_get_unsorted(username,**kwargs):
+    """
+    gets your entire list if it goes over 300 anime
+    """
     out = []
     offset = 0
     while True:
@@ -110,6 +138,9 @@ def mal_get_unsorted(username,**kwargs):
         offset += 300
 
 def mal_get(username,**kwargs):
+    """
+    gets your entire list sorted by status
+    """
     if username == '':
         return []
     out = [[] for _ in range(0,7)]
@@ -120,6 +151,9 @@ def mal_get(username,**kwargs):
     return out
 
 def sort_al(data):
+    """
+    sorts out AniList data by status to resemble MAL's system
+    """
     out = [[] for _ in range(0,7)]
     data = data["data"]["MediaListCollection"]["lists"]
     for entries in data:
@@ -142,6 +176,10 @@ def sort_al(data):
     return out
 
 def al_get(username,variables={}):
+    """
+    gets data from AniList using 
+    variables reffer to JQuery variables
+    """
     if username == '':
         return []
     variables['user'] = username
@@ -156,6 +194,10 @@ def al_get(username,variables={}):
     
 
 def get_proper(username,anilist=False,extra_ids=[],**mal_kwargs):
+    """
+    gets proper data from MAL/AniList
+    sorted by status (0 = extra ids)
+    """
     t = time.time()
     fprint('get',f'getting data from {"anilist.co" if anilist else "myanimelist.net"}',end='')
     if anilist:
@@ -172,7 +214,7 @@ def get_proper(username,anilist=False,extra_ids=[],**mal_kwargs):
         themes_data = get_themes(username,'mal')
     extra_themes_data = []
     for malid in extra_ids:
-        data = parse_theme(themes_get('id',malid))
+        data = parse_anime(themes_get('id',malid))
         data['mal_data'] = {
             'status':5,
             'score':10,
