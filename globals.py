@@ -26,6 +26,7 @@ class Opts:
             no_redownload=False,
             no_dialogue=False,
             sfw=False,
+            no_spoilers=False,
             filename='',
             retry_forever=False,
             audio_format='mp3',

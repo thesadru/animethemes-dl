@@ -23,7 +23,7 @@ Note that owning and distributing the program itself is allowed.
 - run `python main.py -h` for help
 - run `python main.py <username> <settings>` to download your songs
 ## guide
-you may need to use `python main.py` instead of animethemes-dl
+you may need to use `python main.py` instead of `animethemes-dl`
 
 The most barebones download requires a username and a save folder.
 Username refferes to your MAL username, alternatively if you want to use AniList, you need to use `--anilist`.
@@ -38,7 +38,8 @@ Use `--settings` to get settings from a json file.
 animethemes-dl --settings "settings.json"
 ```
 
-If you want extra anime to be downloaded use `--id`
+If you want extra anime to be downloaded use `--id`.
+Ids passed must be MAL's anime id.
 ```
 animethemes-dl --id 42364 31240
 ```
@@ -56,9 +57,10 @@ animethemes-dl --minscore 7 --minpriority High
 animethemes-dl --dropped
 ```
 
-Currently you can filter out all NSFW themes with `--sfw` and all themes with dialogue in them with `--no-dialogue`
+Currently you can filter out all NSFW themes with `--sfw` and all themes with dialogue in them with `--no-dialogue`.
+There may be cases where there's no dialogue tag but it still has dialogue, that is because this theme happens to have important dialogue in them (complain to animethemes about this). If you don't want that use `--no-spoilers`.
 ```
-animethemes-dl --sfw --no-dialogue
+animethemes-dl --sfw --no-dialogue --no-spoilers
 ```
 
 When downloading, you can choose to not redownload songs that are already in the save folder with `-r`.
@@ -146,6 +148,7 @@ default settings look like:
     "video": null,
     "status": [1,2],
     "print_settings": false,
+    "id":[],
     "minscore": 0,
     "minpriority": 0,
     "no_redownload": false,
@@ -167,13 +170,14 @@ default settings look like:
 # how does it work?
 This code grabs your animelist data, filters it based off your settings, puts it through an api and then downloads it
 - get your anime data
-  - pull data from MAL
-  - filter data
-- get theme data
+  - pull data from MAL/AniList
+  - pull data from animethemes
+  - sort them based on status and mirrors
+- download
   - filter out spoilers/NSFW
-  - download song
-  - convert to mp3 with ffmpeg
+  - download song (and convert)
 # TODO
 - code optimizations
-- download only one song
 - add track, artist and description metadata
+- create setup.py
+- add to pypi

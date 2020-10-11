@@ -116,6 +116,7 @@ def parse_download_data(anime_data):
         tags = mirror["quality"].split(', ')
         if (
             Opts.Download.sfw and 'NSFW' in theme['notes'] or
+            Opts.Download.no_spoilers and 'Spoiler' in theme['notes'] or
             Opts.Download.no_dialogue and 'Trans' in tags
         ):
             continue
