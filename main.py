@@ -90,6 +90,9 @@ download.add_argument('-d','--no-dialogue','--no-trans',
 download.add_argument('--sfw','--no-nsfw',
     action='store_true',
     help="Does not download themes that are nsfw")
+download.add_argument('--no-spoilers',
+    action='store_true',
+    help="Does not download themes that have spoilers in them.")
 download.add_argument('-f','--filename',
     default='',
     help="how the filename should be generated, reffer to the README for exact instructions")
