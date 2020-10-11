@@ -4,7 +4,6 @@ sort and modify the gotten list
 """
 import requests
 import json
-import sys
 import time
 from printer import fprint
 from globals import Opts

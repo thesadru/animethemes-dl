@@ -4,13 +4,8 @@ downloads anime themes
 from pySmartDL import SmartDL
 import time;start = time.time()
 import os
-import sys
-import json
-import string
 import eyed3
 import threading
-import random
-from pprint import pprint
 import requests
 from animethemes import get_proper
 from printer import fprint
@@ -259,6 +254,8 @@ _LAST_DOWNLOAD_TIME = 10.0
 def download_theme_audio_server(theme_data,mp3_folder=None,no_redownload=False,data_size=65536,timeout=30):
     """
     downloads an audio file from from a server
+    the progress bar is completely fake
+    
     returns:
     filename (str)
     empty str if no download was made
@@ -271,7 +268,7 @@ def download_theme_audio_server(theme_data,mp3_folder=None,no_redownload=False,d
         global _LAST_DOWNLOAD_TIME
         START_TIME = time.time()
         last_increment = last_decrement = time.time()
-        expected_remain = _LAST_DOWNLOAD_TIME
+        expected_remain = _LAST_DOWNLOAD_TIME+0.75
         current_time = lambda: time.time() - START_TIME
         def download_string(x,y,r=2):
             x = str(x).split('.')
@@ -295,7 +292,7 @@ def download_theme_audio_server(theme_data,mp3_folder=None,no_redownload=False,d
                 last_increment = time.time()
             elif time.time() - last_decrement > 2:
                 # remove some time because it feels good to make it faster
-                expected_remain -= 2*random.random() 
+                expected_remain -= 2/(expected_remain-current_time())
                 last_decrement = time.time()
                 
             if STOP_PROGRESS_BAR:

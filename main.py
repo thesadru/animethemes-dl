@@ -136,6 +136,7 @@ args = parser.parse_args()
 
 args.status = args.status or []
 args.status = [1,2]+args.status
+args.id = args.id or []
 
 if args.settings is not None:
     with open(args.settings) as file:
@@ -152,7 +153,7 @@ args.status.append(0)
 if args.print_settings: 
     fprint('\n'.join([f'{k}={repr(v)}' for k,v in Opts.get_settings().items()]),end='\n\n')
 
-if args.username is '' and len(args.id) == 0:
+if args.username == '' and len(args.id) == 0:
     fprint('error','no username set')
     quit()
 
