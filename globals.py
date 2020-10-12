@@ -82,4 +82,5 @@ if __name__ == '__main__':
         with open(sys.argv[2],'w') as file:
             d = {'username':'','anilist':False,'audio':None,'video':None,'status':[1,2],'print_settings':False,'id':[]}
             d.update(Opts.get_settings())
+            d['quiet'] = False
             json.dump(d,file,indent=4)
