@@ -141,12 +141,12 @@ args.id = args.id or []
 if args.settings is not None:
     with open(args.settings) as file:
         jargs = json.load(file)
-        Opts.update(**jargs)
-        for i in ('username','audio','video','status','print_settings','anilist'):
-            if i in jargs:
-                args.__setattr__(i,jargs[i])
-else:   
-    Opts.update(**args.__dict__)
+        if 'quiet' not in jargs:
+            jargs['quiet'] = False
+        for k in jargs:
+            args.__setattr__(k,jargs[k])
+
+Opts.update(**args.__dict__)
 
 args.status.append(0)
 
