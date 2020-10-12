@@ -228,6 +228,10 @@ def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=Fal
             obj.start()
         except Exception as e:
             fprint('error',str(e))
+        except KeyboardInterrupt:
+            obj.stop()
+            os.remove(obj.get_dest()+'.000')
+            quit()
         webm_dest = obj.get_dest()
         remove_webm = True
     else:
