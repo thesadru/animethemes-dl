@@ -27,7 +27,7 @@ you may need to use `python main.py` instead of `animethemes-dl`
 
 The most barebones download requires a username and a save folder.
 Username refferes to your MAL username, alternatively if you want to use AniList, you need to use `--anilist`.
-Save folders can be set by `a` (audio) and `-v` (video).
+Save folders can be set by `-a` (audio) and `-v` (video).
 ```
 animethemes-dl sadru -a "themes"
 animethemes-dl sadru --anilist -v "anime oped"
@@ -65,7 +65,7 @@ animethemes-dl --sfw --no-dialogue --no-spoilers
 
 When downloading, you can choose to not redownload songs that are already in the save folder with `-r`.
 If your download keeps missing some themes, you can use `--retry-forever` to force the download, this is currently highly unreliable.
-To fix problems with downloading you can use `--local-convert` which converts themes to audio with ffmpeg instead of having it converted and then downloaded. This is very slow however, so you can use `--try-both` to try the chosen method, and then the other one.
+To fix problems with downloading you can use `--local-convert` which converts themes to audio with ffmpeg instead of having it converted and then downloaded. This is may be slow however, so you can use `--try-both` to try the chosen method, and then the other one.
 ```
 animethemes-dl --local-convert --retry-forever
 animethemes-dl --try-both
@@ -181,3 +181,5 @@ This code grabs your animelist data, filters it based off your settings, puts it
 - add track, artist and description metadata
 - create setup.py
 - add to pypi
+- add progress to download
+- add an option to delete files that would have been filtered out
