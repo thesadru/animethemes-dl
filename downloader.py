@@ -1,14 +1,13 @@
+"""
+downloads anime themes
+"""
 from pySmartDL import SmartDL
 import time;start = time.time()
 import os
-import sys
-import json
-import string
 import eyed3
 import threading
-import random
-from pprint import pprint
 import requests
+import string
 from animethemes import get_proper
 from printer import fprint
 from globals import Opts
@@ -17,19 +16,14 @@ FILENAME_BAD = set('#%&{}\\<>*?/$!\'":@+`|')
 FILENAME_BANNED = set('<>:"/\\|?*')
 FILENAME_ALLOWEDASCII = set(string.printable).difference(FILENAME_BANNED)
 
-'''
-def generate_filename(anime_name,song_name,theme_type,filetype='.webm'):
-    """
-    generate a filename
-    <anime_name> <OP/ED> (<song_name>).webm
-    """
-    return f"{anime_name} {theme_type} ({song_name}){filetype}"
-'''
 def generate_filename(
     anime_name_short,anime_name,
     song_name,theme_type,
     filetype='webm'
 ):
+    """
+    genererates a filename based off Opts.Download.filename
+    """
     if Opts.Download.filename:
         filename = Opts.Download.filename
     else:
@@ -57,6 +51,10 @@ def generate_filename(
     
 
 def to_mal_priority(arg,no_raise=True):
+    """
+    converts an arg to mal priority
+    0 = Low; 1 = Medium; 2 = High
+    """
     if arg in {0,1,2}:
         return arg
     elif arg in '012':
@@ -71,6 +69,9 @@ def to_mal_priority(arg,no_raise=True):
         return arg
 
 def remove_bad_nonascii(s):
+    """
+    removes all characters that shouldn't be in a filename and are not ascii
+    """
     r = ''
     for i in s:
         if i in FILENAME_ALLOWEDASCII:
@@ -79,6 +80,9 @@ def remove_bad_nonascii(s):
             
 
 def remove_bad_chars(s):
+    """
+    removes all characters that shouldn't be in a filename
+    """
     if Opts.Download.ascii:
         return remove_bad_nonascii(s)
     
@@ -89,6 +93,17 @@ def remove_bad_chars(s):
     return r
 
 def parse_download_data(anime_data):
+    """
+    parses anime data and converts it into download data
+    [
+        {
+            filename,
+            mirrors,
+            audio_mirrors,
+            metadata {...}
+        }
+    ]
+    """
     fil_anititles = remove_bad_chars(anime_data["short_title"])
     fil_anititlel = remove_bad_chars(anime_data["title"])
     for theme in anime_data["themes"]:
@@ -97,6 +112,7 @@ def parse_download_data(anime_data):
         tags = mirror["quality"].split(', ')
         if (
             Opts.Download.sfw and 'NSFW' in theme['notes'] or
+            Opts.Download.no_spoilers and 'Spoiler' in theme['notes'] or
             Opts.Download.no_dialogue and 'Trans' in tags
         ):
             continue
@@ -120,6 +136,9 @@ def parse_download_data(anime_data):
         }
 
 def get_download_data(username,statuses=[1,2],anilist=False,extra_ids=[],mal_args={}):
+    """
+    gets download data with a MAL/AniList username, adds extra anime and fiters out unwanted stuff
+    """
     # [{"filename":"...","mirrors":[...],"metadata":{...}},...]
     out = []
     data = get_proper(username,anilist,extra_ids,**mal_args)
@@ -138,7 +157,7 @@ def get_download_data(username,statuses=[1,2],anilist=False,extra_ids=[],mal_arg
 
 def convert_ffmpeg(webm_filename,mp3_filename=None,save_folder=None):
     """
-    convert a webm file to a different tyoe
+    convert a video file to an audio file with ffmpeg
     """
     if mp3_filename is None:
         mp3_filename = webm_filename[:-5]
@@ -154,6 +173,13 @@ def convert_ffmpeg(webm_filename,mp3_filename=None,save_folder=None):
     return mp3_filename
     
 def add_metadata(path,metadata,add_coverart):
+    """
+    adds metadata to an mp3 file
+    returns True if succeeded, False if failed
+    """
+    if os.path.splitext(path)[1] != '.mp3':
+        return False
+    
     t = time.time()
     fprint(f'adding metadata for v2.4'+(' with coverart' if add_coverart else ''),end='')
     audiofile = eyed3.load(path)
@@ -168,22 +194,18 @@ def add_metadata(path,metadata,add_coverart):
         audiofile.tag.images.set(3, image, 'image/jpeg')
     audiofile.tag.genre = 145
     
-    while True:
-        try:
-            audiofile.tag.save()
-            fprint(' | '+str(int((time.time()-t)*1000))+'ms')
-            return True
-        except Exception as e:
-            print(e)
-    # try:
-    #     audiofile.tag.save()
-    #     fprint(' | '+str(int((time.time()-t)*1000))+'ms')
-    #     return True
-    # except PermissionError as e:
-    #     fprint('error',f"couldn't add metadata: {e}",start='\n')
-    #     return False
+    try:
+        audiofile.tag.save()
+        fprint(' | '+str(int((time.time()-t)*1000))+'ms')
+        return True
+    except PermissionError as e:
+        fprint('error',f"couldn't add metadata: {e}",start='\n')
+        return False
 
 def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=False):
+    """
+    downloads a theme with given theme data and destination
+    """
     # generate a folder to save webm files
     if webm_folder is None:
         filename = os.path.join(mp3_folder,theme_data["filename"])
@@ -207,6 +229,10 @@ def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=Fal
             obj.start()
         except Exception as e:
             fprint('error',str(e))
+        except KeyboardInterrupt:
+            obj.stop()
+            os.remove(obj.get_dest()+'.000')
+            quit()
         webm_dest = obj.get_dest()
         remove_webm = True
     else:
@@ -233,6 +259,8 @@ def download_theme(theme_data,webm_folder=None,mp3_folder=None,no_redownload=Fal
 _LAST_DOWNLOAD_TIME = 10.0
 def download_theme_audio_server(theme_data,mp3_folder=None,no_redownload=False,data_size=65536,timeout=30):
     """
+    downloads an audio file from from a server
+    the progress bar is completely fake
     
     returns:
     filename (str)
@@ -246,7 +274,7 @@ def download_theme_audio_server(theme_data,mp3_folder=None,no_redownload=False,d
         global _LAST_DOWNLOAD_TIME
         START_TIME = time.time()
         last_increment = last_decrement = time.time()
-        expected_remain = _LAST_DOWNLOAD_TIME
+        expected_remain = _LAST_DOWNLOAD_TIME+0.75
         current_time = lambda: time.time() - START_TIME
         def download_string(x,y,r=2):
             x = str(x).split('.')
@@ -270,7 +298,7 @@ def download_theme_audio_server(theme_data,mp3_folder=None,no_redownload=False,d
                 last_increment = time.time()
             elif time.time() - last_decrement > 2:
                 # remove some time because it feels good to make it faster
-                expected_remain -= 2*random.random() 
+                expected_remain -= 2/(expected_remain-current_time())
                 last_decrement = time.time()
                 
             if STOP_PROGRESS_BAR:
@@ -376,7 +404,7 @@ def download_multi_theme(download_data,webm_folder=None,mp3_folder=None):
                 filename = download_chooser(not mthd)
                 
             if not Opts.Download.retry_forever:
-                break         
+                break
 
 def batch_download(
     username,
@@ -385,6 +413,10 @@ def batch_download(
     anilist=False,
     extra_ids=[]
 ):
+    """
+    basically the main function
+    given a username and destination, downloads all themes from MAL/AniList
+    """
     fprint('progress','initializing program')
     download_data = get_download_data(username,statuses,anilist,extra_ids)
     download_multi_theme(download_data,webm_folder,mp3_folder)

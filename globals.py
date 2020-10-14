@@ -1,6 +1,14 @@
+"""
+global options
+"""
 import sys,json
 
 class Opts:
+    """
+    The options class
+    Uses a quirk of python to use easy global variables
+    DO NOT INITIALIZE
+    """
     class Animelist:
         @classmethod
         def update(cls,
@@ -18,6 +26,7 @@ class Opts:
             no_redownload=False,
             no_dialogue=False,
             sfw=False,
+            no_spoilers=False,
             filename='',
             retry_forever=False,
             audio_format='mp3',
@@ -73,4 +82,5 @@ if __name__ == '__main__':
         with open(sys.argv[2],'w') as file:
             d = {'username':'','anilist':False,'audio':None,'video':None,'status':[1,2],'print_settings':False,'id':[]}
             d.update(Opts.get_settings())
+            d['quiet'] = False
             json.dump(d,file,indent=4)
