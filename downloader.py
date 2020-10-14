@@ -177,8 +177,9 @@ def add_metadata(path,metadata,add_coverart):
     adds metadata to an mp3 file
     returns True if succeeded, False if failed
     """
-    if os.path.splitext(path)[1] != 'mp3':
+    if os.path.splitext(path)[1] != '.mp3':
         return False
+    
     t = time.time()
     fprint(f'adding metadata for v2.4'+(' with coverart' if add_coverart else ''),end='')
     audiofile = eyed3.load(path)
