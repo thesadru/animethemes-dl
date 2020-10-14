@@ -90,6 +90,9 @@ download.add_argument('-d','--no-dialogue','--no-trans',
 download.add_argument('--sfw','--no-nsfw',
     action='store_true',
     help="Does not download themes that are nsfw")
+download.add_argument('--no-spoilers',
+    action='store_true',
+    help="Does not download themes that have spoilers in them.")
 download.add_argument('-f','--filename',
     default='',
     help="how the filename should be generated, reffer to the README for exact instructions")
@@ -133,23 +136,24 @@ args = parser.parse_args()
 
 args.status = args.status or []
 args.status = [1,2]+args.status
+args.id = args.id or []
 
 if args.settings is not None:
     with open(args.settings) as file:
         jargs = json.load(file)
-        Opts.update(**jargs)
-        for i in ('username','audio','video','status','print_settings','anilist'):
-            if i in jargs:
-                args.__setattr__(i,jargs[i])
-else:   
-    Opts.update(**args.__dict__)
+        if 'quiet' not in jargs:
+            jargs['quiet'] = False
+        for k in jargs:
+            args.__setattr__(k,jargs[k])
+
+Opts.update(**args.__dict__)
 
 args.status.append(0)
 
 if args.print_settings: 
     fprint('\n'.join([f'{k}={repr(v)}' for k,v in Opts.get_settings().items()]),end='\n\n')
 
-if args.username is '' and len(args.id) == 0:
+if args.username == '' and len(args.id) == 0:
     fprint('error','no username set')
     quit()
 

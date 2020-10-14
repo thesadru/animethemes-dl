@@ -1,3 +1,6 @@
 .replit
+ffmpeg
 __pychache__/
+test/
 settings.json
+s.json
