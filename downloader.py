@@ -377,38 +377,33 @@ def download_multi_theme(download_data,webm_folder=None,mp3_folder=None):
         os.mkdir(mp3_folder)
     
     download_chooser = (lambda mthd: 
-        download_theme_audio_server(
-            theme,mp3_folder,
-            Opts.Download.no_redownload)
-        if mthd == 0 else
         download_theme(
             theme,webm_folder,mp3_folder,
+            Opts.Download.no_redownload)
+        if (mthd or webm_folder is not None) else
+        download_theme_audio_server(
+            theme,mp3_folder,
             Opts.Download.no_redownload)
     )
     
     # 0: external, 1: local
-    if webm_folder is not None:
-        mthd1,mthd2 = 1,1
-    elif Opts.Download.local_convert:
-        mthd1 = 1
-        mthd2 = int(not Opts.Download.try_both)
-    else:
-        mthd1 = 0
-        mthd2 = int(Opts.Download.try_both)
-    
-    if mthd1 == 0:
-        fprint('progress','started downloading audio files')
-    else:
+    if Opts.Download.local_convert or webm_folder is not None:
+        mthd = 1
         fprint('progress','started downloading'+(' and converting' if mp3_folder is not None else ''))
-        
+    else:
+        mthd = 0
+        fprint('progress','started downloading audio files')
+    
+    
     for theme in download_data:
         filename = None
-        allow_repeat = True
-        while filename is None and allow_repeat:
-            filename = download_chooser(mthd1)
-            if filename is None:
-                filename = download_chooser(mthd2)
-            allow_repeat = Opts.Download.retry_forever          
+        while filename is None:
+            filename = download_chooser(mthd)
+            if filename is None and Opts.Download.try_both:
+                filename = download_chooser(not mthd)
+                
+            if not Opts.Download.retry_forever:
+                break
 
 def batch_download(
     username,
