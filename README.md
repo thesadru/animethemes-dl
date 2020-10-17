@@ -1,6 +1,7 @@
 <div align="center">
   <h1>animethemes-dl</h1>
   Download anime themes with myanimelist.
+  
   ![GitHub](https://img.shields.io/github/license/thesadru/animethemes-dl)
   ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/thesadru/animethemes-dl)
   ![GitHub last commit](https://img.shields.io/github/last-commit/thesadru/animethemes-dl)
@@ -13,7 +14,6 @@ This project allows you to automaticaly download opening and ending songs from a
 # disclaimer
 All videos are downloaded from [animethemes.moe](https://themes.moe/) and originally belong to studios who made them. You are not allowed to distribute any videos downloaded, unless you have permission from the studios that made it and animethemes.moe.
 Note that owning and distributing the program itself is allowed.
-
 # how to install
 - clone this repository or download it
 - do `pip install -r requirements.txt` to install all required libraries
