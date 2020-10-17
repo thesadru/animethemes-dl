@@ -32,7 +32,7 @@ Either clone the repo or use git in combination with pip.
 ### Using pip with git:
 
 1. make sure git is installed on your system 
-2. run `pip install -U git+https://github.com/thesadru/animethemes-dl`
+2. run `pip install -U git+https://github.com/thesadru/animethemes-dl` Note: this will not work if this pr is not merged
 
 # usage
 
