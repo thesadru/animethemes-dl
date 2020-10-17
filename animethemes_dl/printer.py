@@ -23,7 +23,7 @@ def color_category(category):
         'parse': Fore.LIGHTYELLOW_EX,
         'error': Fore.RED
     }[category]
-    return '['+color+category+Style.RESET_ALL+']'
+    return '[{}]'.format(color + category + Style.RESET_ALL)
 
 
 def fprint(category, message='', start='', end='\n'):
