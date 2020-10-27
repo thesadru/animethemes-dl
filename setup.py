@@ -31,6 +31,6 @@ setup(
     long_description_content_type='text/markdown',
     entry_points='''
         [console_scripts]
-        animethemes-dl=animethemes_dl.main
+        animethemes-dl=animethemes_dl.main:batch_download
     '''
 )
