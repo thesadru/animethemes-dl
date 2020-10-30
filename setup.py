@@ -15,7 +15,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    download_url='https://github.com/thesadru/animethemes-dl/archive/master.zip',
+    # download_url='https://github.com/thesadru/animethemes-dl/archive/master.zip',
     python_requires='>=3.6',
     url='https://github.com/thesadru/animethemes-dl',
     keywords='mal anilist themes animthemes moe batch audio filter hd song api ffmpeg dl download animethemes songs'.split(),
