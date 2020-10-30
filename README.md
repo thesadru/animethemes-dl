@@ -179,7 +179,5 @@ This code grabs your animelist data, filters it based off your settings, puts it
 # TODO
 - code optimizations
 - add track, artist and description metadata
-- create setup.py
-- add to pypi
 - add progress to download
 - add an option to delete files that would have been filtered out
