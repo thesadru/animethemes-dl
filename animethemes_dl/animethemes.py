@@ -162,7 +162,8 @@ def sort_al(data):
             'CURRENT':1,
             'COMPLETED':2,
             'DROPPED':4,
-            'PAUSED':3
+            'PAUSED':3,
+            'REPEATING':1, # basically a rewatch
         }[entries[0]['status']]
         for entry in entries:
             out[status].append({
