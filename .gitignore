@@ -1,6 +1,6 @@
 .replit
 ffmpeg
-__pychache__/
+animethemes-dl/__pychache__/
 test/
 settings.json
 s.json
