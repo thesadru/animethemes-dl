@@ -3,15 +3,9 @@ from setuptools import setup, find_packages
 with open('README.md', 'r') as f:
     long_description = f.read()
 
-with open('version', 'r') as f:
-    version = f.read()
-
-with open('requirements.txt','r') as f:
-    install_requires = [i.strip('\n') for i in f.readlines()]
-
 setup(
     name='animethemes-dl',
-    version=version,
+    version='1.0.1',
     author='thesadru',
     author_email='dan0.suman@gmail.com',
     description='Downloads anime themes from theme.moe using an animethemes-api. Supports Batch download and MAL connecting.',
@@ -25,7 +19,7 @@ setup(
     python_requires='>=3.6',
     url='https://github.com/thesadru/animethemes-dl',
     keywords='mal anilist themes animthemes moe batch audio filter hd song api ffmpeg dl download animethemes songs'.split(),
-    install_requires=install_requires,
+    install_requires=["pySmartDl", "eyed3", "requests", "colorama"],
     long_description=long_description,
     long_description_content_type='text/markdown',
     entry_points='''
