@@ -14,13 +14,14 @@ This project allows you to automaticaly download opening and ending songs from a
 All videos are downloaded from [animethemes.moe](https://themes.moe/) and originally belong to studios who made them. You are not allowed to distribute any videos downloaded, unless you have permission from the studios that made it and animethemes.moe.
 Note that owning and distributing the program itself is allowed.
 # how to install
-- clone this repository or download it
-- do `pip install -r requirements.txt` to install all required libraries
+- clone this repository or download it from pip with `pip install animethemes-dl`
+- if you cloned, do `pip install -r requirements.txt` to install all required libraries
 - install ffmpeg into the same folder or in PATH
 # usage
 - make sure you have ffmpeg and python installed
-- run `python main.py -h` for help
-- run `python main.py <username> <settings>` to download your songs
+- run `animethemes-dl.[bat|sh] -h ` for help
+- run `animethemes-dl.[bat|sh] <username> <settings>` to download your songs
+- if you have installed with pip, running `animthemes-dl` should work.
 ## guide
 you may need to use `python main.py` instead of `animethemes-dl`
 
