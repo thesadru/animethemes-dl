@@ -1,6 +1,4 @@
-.replit
 ffmpeg
-animethemes_dl/__pycache__/
-test/
-settings.json
-s.json
+__pycache__*
+test*
+*.json
