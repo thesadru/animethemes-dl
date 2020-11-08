@@ -1,7 +1,7 @@
 """
 downloads anime themes
 """
-from pySmartDL import SmartDL
+from pySmartDL import SmartDL,utils
 import time;start = time.time()
 import os
 import eyed3
@@ -15,6 +15,8 @@ from .globals import Opts
 FILENAME_BAD = set('#%&{}\\<>*?/$!\'":@+`|')
 FILENAME_BANNED = set('<>:"/\\|?*')
 FILENAME_ALLOWEDASCII = set(string.printable).difference(FILENAME_BANNED)
+
+utils.is_HTTPRange_supported = lambda *_,**__: False
 
 def generate_filename(
     anime_name_short,anime_name,
