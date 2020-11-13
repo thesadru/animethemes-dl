@@ -1,9 +1,12 @@
 """
 Gets data from themes.moe using their API.
 """
+from .utils import Measure
 import requests
+import logging
 
-THEMESURL = 'https://themes.moe/api/mal/{user}'
+THEMESMALURL = 'https://themes.moe/api/mal/{user}'
+THEMESALURL  = 'https://themes.moe/api/al/{user}'
 POSSIBLETAGS = [
     'NC',
     'Subbed',
@@ -48,23 +51,30 @@ def parse_theme_type(themetype: str) -> tuple:
     return themetype,shortype,version
     
 
-def get_raw_themes(username: str) -> list:
+def get_raw_animethemes(username: str, anilist: bool = False) -> list:
     """
     Gets themes from r/animethemes using the themes.moe api.
     """
-    url = THEMESURL.format(user=username)
+    if anilist:
+        url = THEMESALURL.format(user=username)
+    else:
+        url = THEMESMALURL.format(user=username)
     
     r = requests.get(url)
     if r.status_code == 200:
-        return r.json()
+        data = r.json()
+        logging.debug(f'Got {len(data)} entries from themes.moe.')
+        return data
     else:
         r.raise_for_status()
 
-def sort_themes(data: list, only_mirrors: bool = False) -> dict:
+def sort_animethemes(data: list) -> dict:
     """
     Sorts themes and returns a version used for animethemes-dl.
     """
     out = []
+    url = ''
+    
     for entry in data:
         themes = {}
         for theme in entry['themes']:
@@ -75,10 +85,8 @@ def sort_themes(data: list, only_mirrors: bool = False) -> dict:
             notes = get_tags(mirror['notes'],POSSIBLENOTES)
             
             if themetype not in themes:
-                short_name = url.split('/')[-1].split('-')[0]
                 themes[themetype] = {
-                    'name':theme['themeName'],
-                    'short_name': short_name,
+                    'title':theme['themeName'],
                     'type': themetype,
                     'shortype':shortype,
                     'mirrors':[]
@@ -96,24 +104,31 @@ def sort_themes(data: list, only_mirrors: bool = False) -> dict:
             theme['mirrors'].sort(key=lambda mirror: mirror['priority'])
             sorted_themes.append(theme)
         
+        short_title = url.split('/')[-1].split('-')[0]
+        
         out.append({
-            'malid':entry['malID'],
-            'status':entry['watchStatus'],
-            'year':entry['year'],
-            'season': entry['season'],
-            'themes': sorted_themes
+            'themes': sorted_themes,
+            'animelist':{
+                'malid':entry['malID'],
+                'status':entry['watchStatus'],
+                'short_title':short_title,
+                'year':entry['year'],
+                'season': entry['season'],
+            }
         })
     
     return out
 
-def get_themes(username: str) -> list:
+def get_animethemes(username: str, anilist: bool = False) -> list:
     """
     Gets themes with a username.
     """
-    raw = get_raw_themes(username)
-    return sort_themes(raw)
+    measure = Measure()
+    raw = get_raw_animethemes(username, anilist)
+    data = sort_animethemes(raw)
+    logging.info(f'Got data from themes.moe in {measure()}s.')
+    return data
 
 if __name__ == "__main__":
     from pprint import pprint
-    pprint(get_themes('sadru'))
-
+    pprint(get_animethemes('sadru'))
