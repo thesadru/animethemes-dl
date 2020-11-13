@@ -1,7 +1,9 @@
 """
 Gets data from anilist.co.
 """
+from .utils import Measure
 import requests
+import logging
 
 ALURL = 'https://graphql.anilist.co'
 ALQUERY = """
@@ -48,16 +50,19 @@ def get_raw_anilist(username: str, query: str=ALQUERY, **vars) -> dict:
         return r.raise_for_status()
     
     if "errors" in data:
-        raise Exception('; '.join(i['message'] for i in data['errors']))
+        errors = '; '.join(i['message'] for i in data['errors'])
+        logging.exception(errors)
+        raise Exception(errors)
     else:
-        return data['data']
+        lists = data['data']["MediaListCollection"]["lists"]
+        logging.debug(f'Got {sum(len(i) for i in lists)} enries from anilist.')
+        return lists
 
-def sort_anilist(data: dict) -> dict:
+def sort_anilist(data: dict) -> list:
     """
     Sorts an anilist list and returns a version used for animethemes-dl.
     """
-    out = {i:[] for i in range(1,7)}
-    data = data["MediaListCollection"]["lists"]
+    out = []
     for i in data:
         status = i['status']
         status = {
@@ -71,7 +76,7 @@ def sort_anilist(data: dict) -> dict:
         entries = i['entries']
         for entry in entries:
             media = entry.pop('media')
-            out[status].append({
+            out.append({
                 'status':status,
                 'score':entry['score'],
                 'priority':entry['priority'],
@@ -84,9 +89,15 @@ def sort_anilist(data: dict) -> dict:
     
     return out
 
-def get_anilist(username: str, **vars) -> dict:
-    raw = get_raw_anilist(username,vars=vars)
-    return sort_anilist(raw)
+def get_anilist(username: str, **vars) -> list:
+    """
+    Gets an anilist list with a username.
+    """
+    measure = Measure()
+    raw = get_raw_anilist(username, **vars)
+    data = sort_anilist(raw)
+    logging.info(f'Got data from anilist in {measure()}s.')
+    return data
 
 if __name__ == "__main__":
     from pprint import pprint

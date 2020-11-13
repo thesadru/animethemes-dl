@@ -1,8 +1,9 @@
 """
 Gets data from myanimelist.net.
 """
-from .utils import add_url_kwargs
+from .utils import add_url_kwargs,Measure
 import requests
+import logging
 
 MALURL = 'https://myanimelist.net/animelist/{user}/load.json'
 
@@ -25,6 +26,7 @@ def get_mal_part(username: str, **kwargs) -> list:
     if r.status_code == 200:
         return r.json()
     else:
+        logging.exception(f'User {username} does not exist on MAL.')
         r.raise_for_status()
 
 def get_raw_mal(username: str, **kwargs) -> list:
@@ -36,22 +38,22 @@ def get_raw_mal(username: str, **kwargs) -> list:
     offset = 0
     while True:
         kwargs['offset'] = offset
-        data = get_mal_part(username,kwargs=kwargs)
+        data = get_mal_part(username, **kwargs)
         out.extend(data)
         if len(data) < 300: # no more anime
+            logging.debug(f'Got {len(data)} entries from MAL.')
             return out
         offset += 300
 
-def sort_mal(data: list) -> dict:
+def sort_mal(data: list) -> list:
     """
     Sorts a MAL list and returns a version used for animethemes-dl.
     """
-    out = {i:[] for i in range(1,7)}
+    out = []
     for entry in data:
-        status = entry['status']
         priority = parse_priority(entry['priority_string'])
-        out[status].append({
-            'status':status,
+        out.append({
+            'status':entry['status'],
             'score':entry['score'],
             'priority':priority,
             'notes':entry['tags'],
@@ -63,12 +65,15 @@ def sort_mal(data: list) -> dict:
     
     return out
 
-def get_mal(username: str, **kwargs) -> dict:
+def get_mal(username: str, **kwargs) -> list:
     """
     Gets a MAL list with a username.
     """
-    raw = get_raw_mal(username, kwargs=kwargs)
-    return sort_mal(raw)
+    measure = Measure()
+    raw = get_raw_mal(username, **kwargs)
+    data = sort_mal(raw)
+    logging.info(f'Got data from MAL in {measure()}s.')
+    return data
 
 if __name__ == "__main__":
     from pprint import pprint
