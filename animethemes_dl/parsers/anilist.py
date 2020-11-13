@@ -2,6 +2,7 @@
 Gets data from anilist.co.
 """
 from .utils import Measure
+from ..errors import AnilistException
 import requests
 import logging
 
@@ -52,7 +53,7 @@ def get_raw_anilist(username: str, query: str=ALQUERY, **vars) -> dict:
     if "errors" in data:
         errors = '; '.join(i['message'] for i in data['errors'])
         logging.exception(errors)
-        raise Exception(errors)
+        raise AnilistException(errors)
     else:
         lists = data['data']["MediaListCollection"]["lists"]
         logging.debug(f'Got {sum(len(i) for i in lists)} enries from anilist.')
