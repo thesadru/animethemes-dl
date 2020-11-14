@@ -1,172 +1,270 @@
 import argparse
 import json
+from json import load
 from os.path import realpath
+import logging
+from pprint import pformat
 
-from .downloader import batch_download, to_mal_priority
-from .globals import Opts
-from .printer import fprint
+from .downloader import batch_download
+from .options import OPTIONS,_update_dict
 
-__doc__ = """
+logger = logging.getLogger('animethemes-dl')
+
+__doc__ = """\
 Batch downloads themes from every anime you have watched with themes.moe.
 Supports multiple filters, adding metadata and smart file naming.
 
 requirements:
-You must have ffmpeg installed in the same folder or on PATH.
+You must have ffmpeg installed in the same folder or on PATH.\
 """
 
 parser = argparse.ArgumentParser(
     description=__doc__,
-    epilog="Check the README.md if there are problems.",
+    epilog="Remember to also check the README.md.",
     prog='animethemes-dl'
 )
-
-parser.add_argument('username',
-    default='',
-    nargs='?',
-    help="Your animelist username")
-parser.add_argument('--anilist','--al',
-    action="store_true",
-    help="Use Anilist instead of MyAnimeList")
-parser.add_argument('-s','--settings',
-    default=None,
+# =============================================================================
+parser.add_argument(
+    '-s','--settings','--options',
     type=realpath,
-    help="A settings file in json format. Check out README.md for more info.")
-parser.add_argument('-id','--id','--mal-ids',
-    type=int,
-    nargs='+',
-    help="mal id's of anime that should be also downloaded.")
+    help="The settings file in json format. Uses the Options model."
+)
 
-animelist = parser.add_argument_group('animelist filters')
-animelist.add_argument('--minscore',
+# =============================================================================
+animelist = parser.add_argument_group('animelist')
+
+animelist = animelist.add_argument_group('animelist')
+animelist.add_argument(
+    'username',
+    help="Your animelist username."
+)
+animelist.add_argument(
+    '--anilist','--al',
+    action='store_true',
+    help="Use Anilist instead of MyAnimeList"
+)
+animelist.add_argument(
+    '--animelist-args',
+    type=dict,
+    default={},
+    help="Animelist arguments, url args for MAL"
+)
+
+animelist_filters = parser.add_argument_group('animelist filters')
+animelist_filters.add_argument(
+    '--minscore',
     type=int,
     default=0,
-    choices=range(11),
-    help="Minimum score that an anime must have to be downloaded (uses 1-10 scale)")
-animelist.add_argument('--minpriority',
-    type=to_mal_priority,
+    help="Minimum score that an anime must have to be downloaded (1-10 scale)"
+)
+animelist_filters.add_argument(
+    '--minpriority',
+    type=int,
     default=0,
-    choices=[0,1,2,'Low','Medium','High'],
-    help="Minimum priority that an anime must have to be downloaded")
+    help="Minimum priority that an anime must have to be downloaded (0-2 scale)"
+)
 
-statuses = parser.add_argument_group('status filters')
-statuses.add_argument('--on-hold',
-    const=3,
-    dest='status',
-    action='append_const',
-    help="Download anime that are on-hold")
-statuses.add_argument('--dropped',
-    const=4,
-    dest='status',
-    action='append_const',
-    help="Download anime that are dropped")
-statuses.add_argument('--planned',
-    const=6,
-    dest='status',
-    action='append_const',
-    help="Download anime that are planned")
-
-folders = parser.add_argument_group('save folders',"If a folder is not set, files will not be downloaded")
-folders.add_argument('-v','--video','--video-folder',
-    type=realpath,
-    default=None,
-    help="video save folder")
-folders.add_argument('-a','--audio','--audio-folder',
-    type=realpath,
-    default=None,
-    help="audio save folder")
-folders.add_argument('--audio-format',
-    default='mp3',
-    help="change the audio format (without a .), default is `mp3`")
-
-download = parser.add_argument_group('download filters')
-download.add_argument('-r','--no-redownload',
+tag_filters = parser.add_argument_group('tag filters')
+tag_filters.add_argument(
+    '--no-spoilers',
     action='store_true',
-    help="Does not redownload themes that are already downloaded")
-download.add_argument('-d','--no-dialogue','--no-trans',
+    help="Does not download any spoilers."
+)
+tag_filters.add_argument(
+    '--no-nsfw','--sfw',
     action='store_true',
-    help="Does not download themes that have dialogue in them.")
-download.add_argument('--sfw','--no-nsfw',
-    action='store_true',
-    help="Does not download themes that are nsfw")
-download.add_argument('--no-spoilers',
-    action='store_true',
-    help="Does not download themes that have spoilers in them.")
-download.add_argument('-f','--filename',
-    default='',
-    help="how the filename should be generated, reffer to the README for exact instructions")
-download.add_argument('--retry-forever',
-    action='store_true',
-    help="Will forever retry downloading mirrors. (unreliable)")
-download.add_argument('--ascii',
-    action='store_true',
-    help="no special characters will be in the filename, only ascii chars")
-download.add_argument('--coverart','--add-coverart',
-    action='store_true',
-    help="Adds coverart to mp3 files")
-download.add_argument('--ffmpeg','--ffmpeg-path',
-    default='ffmpeg',
-    help="Your ffmpeg path if it's not installed in PATH")
-download.add_argument('--local-convert',
-    action='store_true',
-    help="Converts files locally, instead of converting them on the server, good for a supercomputer.")
-download.add_argument('--try-both','--try-both-download-methods',
-    action='store_true',
-    help="if a download method fails, tries the other one.")
-download.add_argument('-p','--preffered',
-    type=lambda x: x.lower(),
+    help="Does not download any NSFW themes."
+)
+tag_filters.add_argument(
+    '--required-tags','--tags',
     default=[],
     nargs='+',
-    help="Preffered tags for themes, look at the README for all avalible tags. Seperate tags by space, with the most wanted at the start.")
+    help="Required tags for themes, check README for possible tags."
+)
 
-printer = parser.add_argument_group('print arguments')
-printstyle = printer.add_mutually_exclusive_group()
-printstyle.add_argument('-c','--no-color','--no-colored-print',
+# =============================================================================
+download = parser.add_argument_group('download')
+download.add_argument(
+    '-a','--audio','--audio-folder',
+    type=realpath,
+    help="Audio save folder."
+)
+download.add_argument(
+    '-v','--video','--video-folder',
+    type=realpath,
+    help="Video save folder."
+)
+download.add_argument(
+    '--filename','--filename-format',
+    help="A format string for filenames, check README for possible args."
+)
+download.add_argument(
+    '-r','--no-redownload',
     action='store_true',
-    help="Does not print in color")
-printstyle.add_argument('-q','--quiet','--no-print',
+    help="Does not redownload themes that are already downloaded."
+)
+download.add_argument(
+    '--ascii',
     action='store_true',
-    help="Does not print to console")
-printer.add_argument('--print-settings',
-    action="store_true",
-    help="Prints settings when the script starts.")
+    help="Strips all unicode characters from filenames."
+)
+download.add_argument(
+    '--sort',
+    help="Sorts themes by animelist args, check README for possible args."
+)
+download.add_argument(
+    '--coverart',
+    action='store_true',
+    help="Adds coverart to audio files."
+)
+download.add_argument(
+    '--coverart-folder',
+    help="Saves all coverarts to a folder."
+)
+download.add_argument(
+    '--timeout',
+    type=int,
+    default=5,
+    help="Timeouts after x seconds."
+)
+download.add_argument(
+    '--retries','--max-retries',
+    type=int,
+    default=3,
+    help="Max retries"
+)
+
+# =============================================================================
+statuses = parser.add_argument_group('statuses')
+statuses.set_defaults(statuses=[1,2])
+statuses.add_argument(
+    '--on-hold',
+    const=3,
+    dest='statuses',
+    action='append_const',
+    help="Download anime that are on-hold."
+)
+statuses.add_argument(
+    '--dropped',
+    const=4,
+    dest='statuses',
+    action='append_const',
+    help="Download anime that are dropped."
+)
+statuses.add_argument(
+    '--planned',
+    const=6,
+    dest='statuses',
+    action='append_const',
+    help="Download anime that are planned."
+)
+
+# =============================================================================
+printing = parser.add_argument_group('printing')
+printing.set_defaults(loglevel=2)
+printing.add_argument(
+    '-q','--quiet',
+    const=6,
+    dest='loglevel',
+    action='store_const',
+    help="Does not print anything, basically `--loglevel 6`."
+)
+printing.add_argument(
+    '--verbose',
+    const=1,
+    dest='loglevel',
+    action='store_const',
+    help="Prints verbose, basically `--loglevel 1`."
+)
+printing.add_argument(
+    '--loglevel',
+    dest='loglevel',
+    action='store',
+    type=int,
+    choices=range(1,6),
+    help="Sets the loglevel, 2 by default. Uses logging as the loglevel, \
+          meaning lower the level, the more information there will be."
+)
+printing.add_argument(
+    '--no-color',
+    action='store_true',
+    help="Does not print in color."
+)
+
+utils = parser.add_argument_group('utilities')
+utils.add_argument(
+    '--ffmpeg',
+    type=realpath,
+    help="path to ffmpeg, in case it's not in PATH"
+)
+
+def load_settings(settings):
+    if settings is None:
+        return {}
+    with open(settings,'r') as file:
+        return json.load(file)
+
+def parse_args(args):
+    options = _update_dict(OPTIONS,
+    {
+        "animelist": {
+            "username": args.username,
+            "anilist": args.anilist,
+            "animelist_args": args.animelist_args,
+            "minpriority": args.minpriority,
+            "minscore": args.minscore
+        },
+        "filter": {
+            "spoilers": not args.no_spoilers,
+            "nsfw": not args.no_nsfw,
+            **{k:True for k in args.required_tags}
+        },
+        "download": {
+            **({"filename": args.filename} if args.filename else {}),
+            "audio_folder": args.audio,
+            "video_folder": args.video,
+            "no_redownload": args.no_redownload,
+            "ascii": args.ascii,
+            "add_coverart": args.coverart,
+            "coverart_folder": args.coverart_folder,
+            "timeout": args.timeout,
+            "retries": args.retries,
+            "sort": args.sort
+        },
+        "statuses": args.statuses,
+        "quiet": args.loglevel>logging.CRITICAL,
+        "no_colors": args.no_color,
+        "ffmpeg": args.ffmpeg
+    })
+    return _update_dict(options,load_settings(args.settings))
+
+def check_errors(options):
+    errors = []
+    if not options['download']['audio_folder'] or not options['download']['video_folder']:
+        errors.append('No audio or video save folder.')
+    if not options['animelist']['username'].strip():
+        errors.append('Improper username')
+    if 'filename' in options['download'] and not options['download']['filename'].count('%'):
+        errors.append('No format in filename, will have overwrites.')
+    return errors
+
+def raise_for_errors(options):
+    errors = check_errors(options)
+    for i in errors:
+        logger.exception('message')
+    if errors:
+        raise ValueError(*errors)
 
 def main():
     args = parser.parse_args()
+    options = parse_args(args)
+    
+    logger.setLevel(args.loglevel*10)
+    logger.debug(pformat(options))
+    
+    raise_for_errors(options)
+    
+    batch_download(options)
 
-    args.status = args.status or []
-    args.status = [1,2]+args.status
-    args.id = args.id or []
-
-    if args.settings is not None:
-        with open(args.settings) as file:
-            jargs = json.load(file)
-            if 'quiet' not in jargs:
-                jargs['quiet'] = False
-            for k in jargs:
-                args.__setattr__(k,jargs[k])
-
-    Opts.update(**args.__dict__)
-
-    args.status.append(0)
-
-    if args.print_settings: 
-        fprint('\n'.join([f'{k}={repr(v)}' for k,v in Opts.get_settings().items()]),end='\n\n')
-
-    if args.username == '' and len(args.id) == 0:
-        fprint('error','no username set')
-        quit()
-
-    if args.video is None and args.audio is None:
-        fprint('error','no save folder set')
-        quit()
-
-    batch_download(
-        args.username,
-        args.status,
-        args.video,args.audio,
-        args.anilist,
-        args.id
-    )
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
