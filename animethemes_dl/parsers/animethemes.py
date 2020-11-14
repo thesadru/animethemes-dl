@@ -8,6 +8,8 @@ import requests
 from ..models import RawAnimeThemes
 from .utils import Measure
 
+logger = logging.getLogger(__name__)
+
 THEMESMALURL = 'https://themes.moe/api/mal/{user}'
 THEMESALURL  = 'https://themes.moe/api/al/{user}'
 POSSIBLETAGS = [
@@ -66,7 +68,7 @@ def get_raw_animethemes(username: str, anilist: bool = False) -> list:
     r = requests.get(url)
     if r.status_code == 200:
         data = r.json()
-        logging.debug(f'Got {len(data)} entries from themes.moe.')
+        logger.debug(f'Got {len(data)} entries from themes.moe.')
         return data
     else:
         r.raise_for_status()
@@ -129,7 +131,7 @@ def get_animethemes(username: str, anilist: bool = False) -> RawAnimeThemes:
     measure = Measure()
     raw = get_raw_animethemes(username, anilist)
     data = sort_animethemes(raw)
-    logging.info(f'Got data from themes.moe in {measure()}s.')
+    logger.info(f'Got data from themes.moe in {measure()}s.')
     return data
 
 if __name__ == "__main__":

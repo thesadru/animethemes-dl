@@ -4,6 +4,7 @@ Options for animethemes_dl.
 import logging
 from .models import Options,_TAGS_TUPLES,_NOTE_TUPLES,DEFAULT
 
+logger = logging.getLogger(__name__)
 OPTIONS = Options(DEFAULT)
 
 def _generate_tagsnotes():
@@ -34,12 +35,12 @@ def _update_dict(old: dict, new: dict):
             if k in old:
                 old[k] = _update_dict(old[k],v)
             else:
-                logging.error(f'Cannot change option category {repr(k)}; does not exist.')
+                logger.error(f'Cannot change option category {repr(k)}; does not exist.')
         else:
             if k in old:
                 old[k] = new[k]
             else:
-                logging.error(f'Cannot change  value {repr(k)}.')
+                logger.error(f'Cannot change  value {repr(k)}.')
     
     return old
 
@@ -51,11 +52,11 @@ def setOptions(options: dict):
     global OPTIONS
     OPTIONS = Options(_update_dict(OPTIONS,options))
     
-    logging.debug(f'Changed {len(options)} categories in options.')
+    logger.debug(f'Changed {len(options)} categories in options.')
 
 if __name__ == "__main__":
     from pprint import pprint
-    logging.basicConfig(level=logging.DEBUG)
+    logger.setLevel(level=logging.DEBUG)
     options = {
         'statuses':[1,2,3,4],
         'filter':{

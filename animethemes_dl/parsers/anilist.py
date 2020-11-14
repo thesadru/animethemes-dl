@@ -9,6 +9,8 @@ from ..errors import AnilistException
 from ..models import RawAnimeList
 from .utils import Measure
 
+logger = logging.getLogger(__name__)
+
 ALURL = 'https://graphql.anilist.co'
 ALQUERY = """
 query userList($user: String) {
@@ -55,11 +57,11 @@ def get_raw_anilist(username: str, query: str=ALQUERY, **vars) -> dict:
     
     if "errors" in data:
         errors = '; '.join(i['message'] for i in data['errors'])
-        logging.exception(errors)
+        logger.exception(errors)
         raise AnilistException(errors)
     else:
         lists = data['data']["MediaListCollection"]["lists"]
-        logging.debug(f'Got {sum(len(i) for i in lists)} enries from anilist.')
+        logger.debug(f'Got {sum(len(i) for i in lists)} enries from anilist.')
         return lists
 
 def sort_anilist(data: dict) -> RawAnimeList:
@@ -100,7 +102,7 @@ def get_anilist(username: str, **vars) -> RawAnimeList:
     measure = Measure()
     raw = get_raw_anilist(username, **vars)
     data = sort_anilist(raw)
-    logging.info(f'Got data from anilist in {measure()}s.')
+    logger.info(f'Got data from anilist in {measure()}s.')
     return data
 
 if __name__ == "__main__":

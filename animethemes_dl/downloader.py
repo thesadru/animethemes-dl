@@ -1,4 +1,5 @@
 import logging
+from logging import Logger
 import tempfile
 from os import makedirs, remove
 from os.path import basename, isfile, join, realpath, splitext
@@ -11,6 +12,8 @@ from .tools import add_id3_metadata, ffmpeg_convert, fix_faulty_url
 from .errors import BadThemesUrl
 from .parsers import get_download_data
 from .models import ADownloadData,DownloadData
+
+logger = logging.getLogger(__name__)
 
 # optimization
 utils.is_HTTPRange_supported = lambda *_,**__: False
@@ -45,14 +48,14 @@ def download_theme(data: ADownloadData):
             data['url'],
             dest,
             progress_bar=not OPTIONS['quiet'],
-            # logger=logging.root,
+            # logger=logger.root,
             verify=False
         )
         try:
             obj.start()
         except Exception as e:
             obj.stop()
-            logging.error(str(e))
+            logger.error(str(e))
         except KeyboardInterrupt as e:
             obj.stop()
             quit(e)
@@ -89,7 +92,7 @@ def batch_download_themes(data: DownloadData):
             pass
     
     for index,theme in enumerate(data,1):
-        logging.info(f"Downloading \"{theme['metadata']['album']} | {theme['metadata']['title']}\" (#{index})")
+        logger.info(f"Downloading \"{theme['metadata']['album']} | {theme['metadata']['title']}\" (#{index})")
         
         for i in range(OPTIONS['download']['retries']):
             try:
@@ -97,8 +100,8 @@ def batch_download_themes(data: DownloadData):
             except BadThemesUrl:
                 break
             except Exception as e:
-                logging.info('fucked up, retrying...')
-                logging.exception(e)
+                logger.info('fucked up, retrying...')
+                logger.exception(e)
             else:
                 break
 
@@ -109,19 +112,19 @@ def batch_download(options: dict={}):
     Basically the main function of `batch_download`.
     """
     setOptions(options)
-    logging.info('initializing animethemes-dl')
+    logger.info('initializing animethemes-dl')
     data = get_download_data(
         OPTIONS['animelist']['username'],
         OPTIONS['animelist']['anilist'],
         OPTIONS['animelist']['animelist_args']
     )
     batch_download_themes(data)
-    logging.info('finished downloading')
+    logger.info('finished downloading')
 
 if __name__ == '__main__':
     import sys
     logging.basicConfig(
-        level=logging.DEBUG if len(sys.argv)==3 else logging.INFO,
+        level=logger.DEBUG if len(sys.argv)==3 else logger.INFO,
         format='%(message)s'
     )
     batch_download({
