@@ -9,7 +9,7 @@ from ..errors import AnilistException
 from ..models import RawAnimeList
 from .utils import Measure
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('animethemes-dl')
 
 ALURL = 'https://graphql.anilist.co'
 ALQUERY = """

@@ -61,7 +61,7 @@ def repair(data: DownloadData):
 if __name__ == "__main__":
     from ..parsers import get_download_data
     from ..options import setOptions
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger('animethemes-dl')
     logging.basicConfig(level=logging.DEBUG)
     setOptions({
         'download':{

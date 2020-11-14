@@ -13,7 +13,7 @@ from .errors import BadThemesUrl
 from .parsers import get_download_data
 from .models import ADownloadData,DownloadData
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('animethemes-dl')
 
 # optimization
 utils.is_HTTPRange_supported = lambda *_,**__: False
@@ -74,6 +74,8 @@ def download_theme(data: ADownloadData):
         try:
             ffmpeg_convert(video,audio)
         except KeyboardInterrupt as e:
+            if isfile(audio):
+                remove(audio)
             quit(e)
         add_id3_metadata(audio,data['metadata'],OPTIONS['download']['add_coverart'])
     

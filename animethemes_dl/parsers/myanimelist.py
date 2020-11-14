@@ -9,7 +9,7 @@ from ..errors import MyanimelistException
 from ..models import RawAnimeList
 from .utils import Measure, add_url_kwargs
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('animethemes-dl')
 
 MALURL = 'https://myanimelist.net/animelist/{user}/load.json'
 

@@ -10,7 +10,7 @@ from ..options import OPTIONS, _generate_tagsnotes
 from .parser import get_themes
 from .utils import Measure
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('animethemes-dl')
 
 FILENAME_BAD = set('#%&{}\\<>*?/$!\'":@+`|')
 FILENAME_BANNED = set('<>:"/\\|?*')
