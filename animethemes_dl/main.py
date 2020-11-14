@@ -1,6 +1,5 @@
 import argparse
 import json
-import sys
 from os.path import realpath
 
 from .downloader import batch_download, to_mal_priority

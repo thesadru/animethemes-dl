@@ -1,8 +1,8 @@
+from .models import Options
 import logging
-from logging import Logger
-import tempfile
-from os import makedirs, remove
-from os.path import basename, isfile, join, realpath, splitext
+from os import PathLike, makedirs, remove
+from os.path import isfile
+from typing import Tuple
 
 from pySmartDL import SmartDL, utils
 
@@ -17,70 +17,91 @@ logger = logging.getLogger('animethemes-dl')
 
 # optimization
 utils.is_HTTPRange_supported = lambda *_,**__: False
-tempdir = join(tempfile.gettempdir(),'pySmartDL')
 
-def download_theme(data: ADownloadData):
+def determine_needed(video: PathLike=None, audio: PathLike=None) -> Tuple[bool,bool]:
     """
-    Downloads a theme with theme `data`.
-    Uses two destinations for audio and video folders.
-    Adds metadata for audio files.
+    Check what files need to be downloaded.
     """
-    # what files are requested
-    video,audio = data['video_path'],data['audio_path']
     # what files exists
-    if video is None:
-        video = realpath(join(tempdir,splitext(basename(audio))[0]+'.webm'))
-    will_delete_video = video is None
     exvideo = isfile(video) if video else None
     exaudio = isfile(audio) if audio else None
     # what files are needed to be downloaded
     redownload = not OPTIONS['download']['no_redownload']
-    # needed if         can download        and       requested
+    # needed if         can download        and     requested
     needaudio = (redownload or not exaudio) and audio
     needvideo = (redownload or not exvideo) and (video or needaudio)
-    
-    if needvideo:
-        if will_delete_video:
-            dest = None
-        else:
-            dest = video
-        obj = SmartDL(
-            data['url'],
-            dest,
-            progress_bar=not OPTIONS['quiet'],
-            # logger=logger.root,
-            verify=False
-        )
-        try:
-            obj.start()
-        except Exception as e:
-            obj.stop()
-            logger.error(str(e))
-        except KeyboardInterrupt as e:
-            obj.stop()
-            quit(e)
-        print(obj.get_dl_size())
-        if obj.get_dl_size() <= 0x100000: # less than MB probably means a faulty url
-            data['url'] = fix_faulty_url(data)
-            remove(obj.get_dest())
-            download_theme(data) # I gave up and made the function recursive
-        
-        video = obj.get_dest()
-        exvideo = True
+    return needvideo,needaudio
+
+def download_video(data: ADownloadData, use_temp: bool=False):
+    """
+    Downloads a video with data.
+    Returns destination
+    """
+    if use_temp:
+        dest = None
     else:
-        exvideo = False
+        dest = data['video_path']
     
-    if needaudio:
-        try:
-            ffmpeg_convert(video,audio)
-        except KeyboardInterrupt as e:
-            if isfile(audio):
-                remove(audio)
-            quit(e)
-        add_id3_metadata(audio,data['metadata'],OPTIONS['download']['add_coverart'])
+    logger.debug(f'downloading to {dest}')
     
-    if video and exvideo and will_delete_video:
-        remove(video)
+    obj = SmartDL(
+        data['url'],
+        dest,
+        progress_bar=not OPTIONS['quiet'],
+        # logger=logger.root,
+        timeout=OPTIONS['download']['timeout'],
+        verify=False
+    )
+    try:
+        obj.start()
+    except Exception as e:
+        obj.stop()
+        logger.error(str(e))
+    except KeyboardInterrupt as e:
+        obj.stop()
+        quit(e)
+    
+    if obj.get_dl_size() <= 0x100000: # less than MB probably means a faulty url
+        data['url'] = fix_faulty_url(data)
+        remove(obj.get_dest())
+        download_theme(data) # I gave up and made the function recursive
+    
+    return obj.get_dest()
+
+def convert_audio(data: ADownloadData, video_path: PathLike=None):
+    """
+    Converts webm video into audio and adds metadata.
+    Can force a different video path.
+    """
+    data['video_path'] = data['video_path'] or video_path
+    try:
+        ffmpeg_convert(data['video_path'],data['audio_path'])
+    except KeyboardInterrupt as e:
+        # delete unfinished ffmpeg conversions
+        if isfile(data['audio_path']):
+            remove(data['audio_path'])
+        quit(e)
+    add_id3_metadata(data['audio_path'],data['metadata'],OPTIONS['download']['add_coverart'])
+
+def download_theme(data: ADownloadData, dlvideo: bool=True, dlaudio:bool=True):
+    """
+    Downloads a theme with theme `data`.
+    Uses two destinations for audio and video folders.
+    You can choose which files you want to download.
+    Adds metadata for audio files.
+    """
+    if dlvideo:
+        video_path = download_video(data,data['video_path'] is None)
+    else:
+        video_path = None
+    
+    if dlaudio:
+        convert_audio(data,video_path)
+    
+    #if   downloaded video    and     didn't save video
+    if video_path is not None and data['video_path'] is None:
+        logger.debug(f'removing {video_path}')
+        remove(video_path)
 
 def batch_download_themes(data: DownloadData):
     """
@@ -94,20 +115,24 @@ def batch_download_themes(data: DownloadData):
             pass
     
     for index,theme in enumerate(data,1):
+        dlvideo,dlaudio = determine_needed(theme['video_path'],theme['audio_path'])
+        if not (dlvideo or dlaudio):
+            continue
+        
         logger.info(f"[download] \"{theme['metadata']['album']} | {theme['metadata']['title']}\" (#{index})")
         
-        for i in range(OPTIONS['download']['retries']):
+        for retry in range(OPTIONS['download']['retries']):
             try:
-                download_theme(theme)
+                download_theme(theme,dlvideo,dlaudio)
             except BadThemesUrl:
                 break
             except Exception as e:
-                logger.info('[error] fucked up, retrying...')
+                logger.info(f'[error] fucked up, retrying ({retry})...')
                 logger.exception(e)
             else:
                 break
 
-def batch_download(options: dict={}):
+def batch_download(options: dict=Options):
     """
     Takes in options that will be passed into `setOptions`.
     Downloads all themes and adds metadata to it.
@@ -124,11 +149,11 @@ def batch_download(options: dict={}):
     logger.info('[progress] finished downloading')
 
 if __name__ == '__main__':
-    import sys
+    from .models.animelist import SingleAnimeList
     logging.basicConfig(
-        level=logging.DEBUG if len(sys.argv)==3 else logging.INFO,
         format='%(message)s'
     )
+    logger.setLevel(logging.DEBUG)
     batch_download({
         'animelist':{
             'username':'sadru',
@@ -139,11 +164,13 @@ if __name__ == '__main__':
             'spoilers':False
         },
         'download':{
-            'audio_folder':'test/anime_themes',
+            'audio_folder':'test/anime_themes/audio',
             'video_folder':'test/anime_themes/video',
             'no_redownload':True,
             'add_coverart':True,
-            'sort':lambda x:x['animelist']['title']
+            'coverart_folder':'test/anime_themes/coverarts',
+            'timeout':15,
+            'sort':'year'
         },
         # 'ffmpeg':'./ffmpeg.exe'
     })

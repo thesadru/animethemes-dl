@@ -1,6 +1,6 @@
 from os import PathLike
 from .literals import Score,Priority,Status
-from typing import Optional,List,TypedDict,Callable
+from typing import Optional,List,TypedDict
 
 _TAGS_TUPLES = [('nocredits','NC'),('lyrics','Lyrics'),('bluray','BD'),
                 ('DVD','DVD'),('1080','1080'),('480','480')]
@@ -29,8 +29,9 @@ class DownloadOptions(TypedDict):
     ascii: bool
     add_coverart: bool
     coverart_folder: Optional[PathLike]
+    timeout: int
     retries: int
-    sort: Callable
+    sort: str
 
 class Options(TypedDict):
     animelist: AnimeListOptions
@@ -67,11 +68,21 @@ DEFAULT = {
         'ascii':False,
         'add_coverart':False,
         'coverart_folder': None,
+        'timeout':5,
         'retries':3,
-        'sort':lambda _: 0
+        'sort':None
     },
     'statuses':[1,2],
     'quiet': False,
     'no_colors':False,
     'ffmpeg': 'ffmpeg'
 }
+
+if __name__ == "__main__":
+    import json
+    json.dump(
+        DEFAULT,
+        open('settings.json','w'),
+        indent=4,
+        allow_nan=True
+    )

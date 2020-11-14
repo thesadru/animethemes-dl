@@ -3,7 +3,7 @@ For pretty logging
 """
 import logging
 from colorama import init, Fore
-from .options import OPTIONS
+from ..options import OPTIONS
 init()
 
 # there are 8 colors, 6 of which ca be used (no white/black)

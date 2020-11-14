@@ -1,8 +1,7 @@
 import logging
-import mimetypes
 from mimetypes import guess_extension, guess_type
 from os import PathLike, system
-from os.path import basename, isfile, join, split, splitext
+from os.path import basename, isfile, join, splitext
 from typing import Tuple
 
 import requests
@@ -10,8 +9,8 @@ from mutagen.easyid3 import EasyID3
 from mutagen.id3 import APIC, ID3
 
 from ..errors import FfmpegException
+from ..models import Metadata, UrlLike
 from ..options import OPTIONS
-from ..models import Metadata,UrlLike
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -80,7 +79,7 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, add_coverart: bool=Fals
     Adds metadata to an MP3 file using mutagens `EasyID3`.
     Uses ID3 v2.4.
     """
-    logger.info(f'[tag] Adding metadata for {path} (coverart={int(add_coverart)})')
+    logger.info(f"[tag] Adding metadata{' (w/coverart) ' if add_coverart else ' '}for {basename(path)}")
     coverart = metadata.pop('coverart')
     audio = EasyID3(path)
     audio.update(metadata)

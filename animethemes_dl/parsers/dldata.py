@@ -115,8 +115,6 @@ def sort_download_data(data: dict) -> DownloadData:
                 out.append(data)
     
     return out
-                
-                
 
 def get_download_data(username: str, anilist: bool = False, animelist_args={}) -> DownloadData:
     """
