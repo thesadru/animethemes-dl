@@ -38,6 +38,7 @@ class Options(TypedDict):
     download: DownloadOptions
     statuses: List[Status]
     quiet: bool
+    no_colors: bool
     ffmpeg: PathLike
 
 DEFAULT = {
@@ -71,5 +72,6 @@ DEFAULT = {
     },
     'statuses':[1,2],
     'quiet': False,
+    'no_colors':False,
     'ffmpeg': 'ffmpeg'
 }

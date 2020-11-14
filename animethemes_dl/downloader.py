@@ -124,7 +124,7 @@ def batch_download(options: dict={}):
 if __name__ == '__main__':
     import sys
     logging.basicConfig(
-        level=logger.DEBUG if len(sys.argv)==3 else logger.INFO,
+        level=logging.DEBUG if len(sys.argv)==3 else logging.INFO,
         format='%(message)s'
     )
     batch_download({
