@@ -2,7 +2,7 @@ import logging
 
 from ..errors import BadThemesUrl
 from ..models import ADownloadData
-from ..colors import ColorFormatter
+from .colors import ColorFormatter
 
 logger = logging.getLogger('animethemes-dl')
 

@@ -44,7 +44,7 @@ def _update_dict(old: dict, new: dict):
     
     return old
 
-def setOptions(options: dict):
+def setOptions(options: Options):
     """
     Sets `animethemes_dl.OPTIONS`.
     Look at `animethemes_dl.OPTIONS` for defaults.

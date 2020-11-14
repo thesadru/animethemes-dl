@@ -24,7 +24,12 @@ def combine_themes(animelist: list, themes: list) -> Themes:
             out.append(themes[malid])
             out[-1]['animelist'].update(anime)
     
-    return sorted(out,key=OPTIONS['download']['sort'])
+    if OPTIONS['download']['sort'] is None:
+        return out
+    else:
+        return sorted(out,
+            key=lambda x: x['animelist'][OPTIONS['download']['sort']]
+        )
 
 def get_themes(username: str, anilist: bool=False, **animelist_args) -> Themes:
     """
