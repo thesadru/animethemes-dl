@@ -3,6 +3,7 @@ import logging
 from ..errors import BadThemesUrl
 from ..models import ADownloadData
 
+logger = logging.getLogger(__name__)
 
 def fix_faulty_url(data: ADownloadData):
     """
@@ -13,5 +14,5 @@ def fix_faulty_url(data: ADownloadData):
         raise BadThemesUrl(f'Cannot get a good url for {data["url"]}')
     else:
         url = '-'.join(data['url'].split('-')[:2])+'.webm'
-        logging.debug(f'Url "{data["url"]}" failed, trying "{url}"')
+        logger.debug(f'Url "{data["url"]}" failed, trying "{url}"')
         return url

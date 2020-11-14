@@ -13,6 +13,8 @@ from ..errors import FfmpegException
 from ..options import OPTIONS
 from ..models import Metadata,UrlLike
 
+logger = logging.getLogger(__name__)
+
 def ffmpeg_convert(old: str, new: str):
     """
     Convert a video file to an audio file with ffmpeg.
@@ -21,11 +23,11 @@ def ffmpeg_convert(old: str, new: str):
     loglevel = 'quiet' if OPTIONS['quiet'] else 'warning'
     ffmpeg_command = f' -i "{old}" "{new}" -y -stats -v quiet -loglevel {loglevel}'
     
-    logging.debug(f'running ffmpeg cmd "{ffmpeg_command}".')
+    logger.debug(f'running ffmpeg cmd "{ffmpeg_command}".')
     
     system(OPTIONS['ffmpeg']+ffmpeg_command)
     if not isfile(new):
-        logging.error(f'ffmpeg failed to convert "{old}" to "{new}".')
+        logger.error(f'ffmpeg failed to convert "{old}" to "{new}".')
         raise FfmpegException('Ffmpeg failed to convert, check if in path.')
 
 def get_coverart(url: UrlLike, metadata: Metadata=None) -> Tuple[bytes,str,str]:
@@ -78,7 +80,7 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, add_coverart: bool=Fals
     Adds metadata to an MP3 file using mutagens `EasyID3`.
     Uses ID3 v2.4.
     """
-    logging.info(f'Adding metadata for {path} (coverart={int(add_coverart)})')
+    logger.info(f'Adding metadata for {path} (coverart={int(add_coverart)})')
     coverart = metadata.pop('coverart')
     audio = EasyID3(path)
     audio.update(metadata)

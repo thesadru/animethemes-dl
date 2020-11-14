@@ -7,7 +7,6 @@ from .anilist import get_anilist
 from .animethemes import get_animethemes
 from .myanimelist import get_mal
 
-
 def combine_themes(animelist: list, themes: list) -> Themes:
     """
     Combines an animelist with themes.

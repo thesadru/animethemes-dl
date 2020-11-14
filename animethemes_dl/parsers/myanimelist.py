@@ -9,6 +9,8 @@ from ..errors import MyanimelistException
 from ..models import RawAnimeList
 from .utils import Measure, add_url_kwargs
 
+logger = logging.getLogger(__name__)
+
 MALURL = 'https://myanimelist.net/animelist/{user}/load.json'
 
 def parse_priority(priority: str) -> int:
@@ -30,7 +32,7 @@ def get_mal_part(username: str, **kwargs) -> list:
     if r.status_code == 200:
         return r.json()
     else:
-        logging.exception(f'User {username} does not exist on MAL.')
+        logger.exception(f'User {username} does not exist on MAL.')
         raise MyanimelistException(f'User {username} does not exist on MAL.')
 
 def get_raw_mal(username: str, **kwargs) -> list:
@@ -45,7 +47,7 @@ def get_raw_mal(username: str, **kwargs) -> list:
         data = get_mal_part(username, **kwargs)
         out.extend(data)
         if len(data) < 300: # no more anime
-            logging.debug(f'Got {len(data)} entries from MAL.')
+            logger.debug(f'Got {len(data)} entries from MAL.')
             return out
         offset += 300
 
@@ -76,7 +78,7 @@ def get_mal(username: str, **kwargs) -> RawAnimeList:
     measure = Measure()
     raw = get_raw_mal(username, **kwargs)
     data = sort_mal(raw)
-    logging.info(f'Got data from MAL in {measure()}s.')
+    logger.info(f'Got data from MAL in {measure()}s.')
     return data
 
 if __name__ == "__main__":

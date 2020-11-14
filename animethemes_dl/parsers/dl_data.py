@@ -10,6 +10,8 @@ from ..options import OPTIONS, _generate_tagsnotes
 from .parser import get_themes
 from .utils import Measure
 
+logger = logging.getLogger(__name__)
+
 FILENAME_BAD = set('#%&{}\\<>*?/$!\'":@+`|')
 FILENAME_BANNED = set('<>:"/\\|?*')
 FILENAME_ALLOWEDASCII = set(string.printable).difference(FILENAME_BANNED)
@@ -127,8 +129,8 @@ def get_download_data(username: str, anilist: bool = False, animelist_args={}) -
     measure = Measure()
     raw = get_themes(username, anilist, **animelist_args)
     data = sort_download_data(raw)
-    logging.debug(f'Filtered out {len(raw)-len(data)} entries.')
-    logging.info(f'Got all download data ({len(data)} entries) in {measure()}s.')
+    logger.debug(f'Filtered out {len(raw)-len(data)} entries.')
+    logger.info(f'Got all download data ({len(data)} entries) in {measure()}s.')
     return data
 
 if __name__ == "__main__":
