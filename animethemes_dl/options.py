@@ -4,7 +4,7 @@ Options for animethemes_dl.
 import logging
 from .models import Options,_TAGS_TUPLES,_NOTE_TUPLES,DEFAULT
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('animethemes-dl')
 OPTIONS = Options(DEFAULT)
 
 def _generate_tagsnotes():

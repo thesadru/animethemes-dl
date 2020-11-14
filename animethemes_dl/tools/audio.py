@@ -13,7 +13,7 @@ from ..errors import FfmpegException
 from ..options import OPTIONS
 from ..models import Metadata,UrlLike
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('animethemes-dl')
 
 def ffmpeg_convert(old: str, new: str):
     """

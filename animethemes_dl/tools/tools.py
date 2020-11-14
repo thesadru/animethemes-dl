@@ -4,7 +4,7 @@ from ..errors import BadThemesUrl
 from ..models import ADownloadData
 from ..colors import ColorFormatter
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('animethemes-dl')
 
 def fix_faulty_url(data: ADownloadData):
     """
@@ -22,8 +22,15 @@ def init_logger():
     """
     Initializes the animethemes_dl logger.
     """
-    logger = logging.getLogger('animethemes_dl')
+    logger = logging.getLogger('animethemes-dl')
+    if logger.handlers:
+        return False
+    
     logger_handler = logging.StreamHandler()
     logger.addHandler(logger_handler)
     
     logger_handler.setFormatter(ColorFormatter())
+    
+    logger.propagate = False
+
+    return True

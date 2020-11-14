@@ -8,7 +8,7 @@ import requests
 from ..models import RawAnimeThemes
 from .utils import Measure
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('animethemes-dl')
 
 THEMESMALURL = 'https://themes.moe/api/mal/{user}'
 THEMESALURL  = 'https://themes.moe/api/al/{user}'
