@@ -1,10 +1,13 @@
 """
 Gets data from anilist.co.
 """
-from .utils import Measure
-from ..errors import AnilistException
-import requests
 import logging
+
+import requests
+
+from ..errors import AnilistException
+from ..models import RawAnimeList
+from .utils import Measure
 
 ALURL = 'https://graphql.anilist.co'
 ALQUERY = """
@@ -59,7 +62,7 @@ def get_raw_anilist(username: str, query: str=ALQUERY, **vars) -> dict:
         logging.debug(f'Got {sum(len(i) for i in lists)} enries from anilist.')
         return lists
 
-def sort_anilist(data: dict) -> list:
+def sort_anilist(data: dict) -> RawAnimeList:
     """
     Sorts an anilist list and returns a version used for animethemes-dl.
     """
@@ -90,7 +93,7 @@ def sort_anilist(data: dict) -> list:
     
     return out
 
-def get_anilist(username: str, **vars) -> list:
+def get_anilist(username: str, **vars) -> RawAnimeList:
     """
     Gets an anilist list with a username.
     """

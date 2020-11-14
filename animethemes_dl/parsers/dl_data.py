@@ -3,10 +3,12 @@ Parses data and returns download data.
 """
 import logging
 import string
-from os.path import join,realpath,split
+from os.path import join, realpath, split, splitext
+
+from ..models import DownloadData
+from ..options import OPTIONS, _generate_tagsnotes
 from .parser import get_themes
 from .utils import Measure
-from ..options import OPTIONS,_generate_tagsnotes
 
 FILENAME_BAD = set('#%&{}\\<>*?/$!\'":@+`|')
 FILENAME_BANNED = set('<>:"/\\|?*')
@@ -25,6 +27,16 @@ def is_mirror_allowed(mirror: dict, required_tags: set=[], banned_notes: set=[])
             return False
     return True
 
+def strip_illegal_chars(filename: str) -> str:
+    """
+    Removes all illegal chars from a filename
+    """
+    if OPTIONS['download']['ascii']:
+        return ''.join(i for i in filename if i in FILENAME_ALLOWEDASCII)
+    else:
+        return ''.join(i for i in filename if i not in FILENAME_BANNED)
+    
+
 def generate_path(animelist: dict, theme: dict, mirror: dict) -> bool:
     """
     Generates a path with animelist, theme and mirror dicts
@@ -35,11 +47,23 @@ def generate_path(animelist: dict, theme: dict, mirror: dict) -> bool:
     formatter['short_anime_title'] = formatter.pop('short_title')
     formatter['original_filename'] = split(formatter.pop('url'))[-1]
     formatter['filetype'] = 'webm'
-    del formatter['cover']
     
     filename = OPTIONS['download']['filename'] % formatter
-    path = join(OPTIONS['download']['save_folder'],filename)
-    return realpath(path)
+    filename = strip_illegal_chars(filename)
+    
+    if OPTIONS['download']['video_folder']:
+        video = realpath(join(OPTIONS['download']['video_folder'],filename))
+    else:
+        video = None
+        
+    if OPTIONS['download']['audio_folder']:
+        audio = realpath(join(OPTIONS['download']['audio_folder'],filename))
+        audio = splitext(audio)[0]+'.mp3'
+    else:
+        audio = None
+    
+    return video,audio
+
 
 def parse_theme(animelist: dict, theme: dict) -> dict:
     """
@@ -54,28 +78,34 @@ def parse_theme(animelist: dict, theme: dict) -> dict:
     else:
         return None
     
+    video,audio = generate_path(animelist,theme,mirror)
     return {
         'url':mirror['url'],
-        'path':generate_path(animelist,theme,mirror),
+        'video_path':video,
+        'audio_path':audio,
         "metadata":{
             "title":theme["title"],
             "album":animelist["title"],
-            "year":animelist["year"],
-            "genre":145,
-            "cover":animelist['cover'],
-            "description":animelist['notes']
+            # "year":animelist["year"],
+            "genre":[145],
+            "coverart":animelist['cover'],
+            "encodedby": 'animethemes.moe',
+            "version": str(mirror['version']),
+            "discnumber": str(animelist['malid'])
+            # "tracknumber": theme['index']
+            # "artist": animelist['studio']
         }
     }
     
 
-def sort_download_data(data: dict) -> list:
+def sort_download_data(data: dict) -> DownloadData:
     """
     Sorts themes and returns a version used for animethemes-dl.
     """
     out = []
     for anime in data:
         animelist = anime.pop('animelist')
-        if int(animelist['status']) in OPTIONS['statuses']:
+        if int(animelist['status']) not in OPTIONS['statuses']:
             continue # if status is not wanted
         for theme in anime.pop('themes'):
             data = parse_theme(animelist,theme)
@@ -86,7 +116,7 @@ def sort_download_data(data: dict) -> list:
                 
                 
 
-def get_download_data(username: str, anilist: bool = False, animelist_args={}) -> list:
+def get_download_data(username: str, anilist: bool = False, animelist_args={}) -> DownloadData:
     """
     Gets download data from themes.moe and myanimelist.net/anilist.co.
     Returns a list of mirrors, save_paths and id3 tags.

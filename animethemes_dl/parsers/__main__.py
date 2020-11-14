@@ -1,8 +1,9 @@
 import json
-import sys
 import logging
-from ..options import OPTIONS,setOptions
-from . import get_themes,get_download_data
+import sys
+
+from ..options import OPTIONS, setOptions
+from . import get_download_data, get_themes
 
 if len(sys.argv) < 2:
     raise Exception('Must have a username, use like this: `parsers [dl|get] <username> <anilist>`')

@@ -1,9 +1,12 @@
 """
 Gets data from themes.moe using their API.
 """
-from .utils import Measure
-import requests
 import logging
+
+import requests
+
+from ..models import RawAnimeThemes
+from .utils import Measure
 
 THEMESMALURL = 'https://themes.moe/api/mal/{user}'
 THEMESALURL  = 'https://themes.moe/api/al/{user}'
@@ -68,7 +71,7 @@ def get_raw_animethemes(username: str, anilist: bool = False) -> list:
     else:
         r.raise_for_status()
 
-def sort_animethemes(data: list) -> dict:
+def sort_animethemes(data: list) -> RawAnimeThemes:
     """
     Sorts themes and returns a version used for animethemes-dl.
     """
@@ -119,7 +122,7 @@ def sort_animethemes(data: list) -> dict:
     
     return out
 
-def get_animethemes(username: str, anilist: bool = False) -> list:
+def get_animethemes(username: str, anilist: bool = False) -> RawAnimeThemes:
     """
     Gets themes with a username.
     """
