@@ -92,7 +92,7 @@ def batch_download_themes(data: DownloadData):
             pass
     
     for index,theme in enumerate(data,1):
-        logger.info(f"Downloading \"{theme['metadata']['album']} | {theme['metadata']['title']}\" (#{index})")
+        logger.info(f"[download] \"{theme['metadata']['album']} | {theme['metadata']['title']}\" (#{index})")
         
         for i in range(OPTIONS['download']['retries']):
             try:
@@ -100,7 +100,7 @@ def batch_download_themes(data: DownloadData):
             except BadThemesUrl:
                 break
             except Exception as e:
-                logger.info('fucked up, retrying...')
+                logger.info('[error] fucked up, retrying...')
                 logger.exception(e)
             else:
                 break
@@ -112,14 +112,14 @@ def batch_download(options: dict={}):
     Basically the main function of `batch_download`.
     """
     setOptions(options)
-    logger.info('initializing animethemes-dl')
+    logger.info('[progress] initializing animethemes-dl')
     data = get_download_data(
         OPTIONS['animelist']['username'],
         OPTIONS['animelist']['anilist'],
         OPTIONS['animelist']['animelist_args']
     )
     batch_download_themes(data)
-    logger.info('finished downloading')
+    logger.info('[progress] finished downloading')
 
 if __name__ == '__main__':
     import sys

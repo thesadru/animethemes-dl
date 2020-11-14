@@ -32,7 +32,7 @@ def get_mal_part(username: str, **kwargs) -> list:
     if r.status_code == 200:
         return r.json()
     else:
-        logger.exception(f'User {username} does not exist on MAL.')
+        logger.exception(f'[error] User {username} does not exist on MAL.')
         raise MyanimelistException(f'User {username} does not exist on MAL.')
 
 def get_raw_mal(username: str, **kwargs) -> list:
@@ -78,7 +78,7 @@ def get_mal(username: str, **kwargs) -> RawAnimeList:
     measure = Measure()
     raw = get_raw_mal(username, **kwargs)
     data = sort_mal(raw)
-    logger.info(f'Got data from MAL in {measure()}s.')
+    logger.info(f'[get] Got data from MAL in {measure()}s.')
     return data
 
 if __name__ == "__main__":

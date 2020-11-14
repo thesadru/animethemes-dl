@@ -130,7 +130,7 @@ def get_download_data(username: str, anilist: bool = False, animelist_args={}) -
     raw = get_themes(username, anilist, **animelist_args)
     data = sort_download_data(raw)
     logger.debug(f'Filtered out {len(raw)-len(data)} entries.')
-    logger.info(f'Got all download data ({len(data)} entries) in {measure()}s.')
+    logger.info(f'[get] Got all download data ({len(data)} entries) in {measure()}s.')
     return data
 
 if __name__ == "__main__":
