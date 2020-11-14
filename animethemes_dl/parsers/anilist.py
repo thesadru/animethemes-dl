@@ -57,7 +57,7 @@ def get_raw_anilist(username: str, query: str=ALQUERY, **vars) -> dict:
     
     if "errors" in data:
         errors = '; '.join(i['message'] for i in data['errors'])
-        logger.exception(errors)
+        logger.exception(f'[error] {errors}')
         raise AnilistException(errors)
     else:
         lists = data['data']["MediaListCollection"]["lists"]
@@ -102,7 +102,7 @@ def get_anilist(username: str, **vars) -> RawAnimeList:
     measure = Measure()
     raw = get_raw_anilist(username, **vars)
     data = sort_anilist(raw)
-    logger.info(f'Got data from anilist in {measure()}s.')
+    logger.info(f'[get] Got data from anilist in {measure()}s.')
     return data
 
 if __name__ == "__main__":

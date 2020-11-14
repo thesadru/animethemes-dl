@@ -131,7 +131,7 @@ def get_animethemes(username: str, anilist: bool = False) -> RawAnimeThemes:
     measure = Measure()
     raw = get_raw_animethemes(username, anilist)
     data = sort_animethemes(raw)
-    logger.info(f'Got data from themes.moe in {measure()}s.')
+    logger.info(f'[get] Got data from themes.moe in {measure()}s.')
     return data
 
 if __name__ == "__main__":

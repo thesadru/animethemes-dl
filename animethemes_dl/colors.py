@@ -6,15 +6,14 @@ from colorama import init, Fore
 from .options import OPTIONS
 init()
 
-# there are 8 colors, 6 of which are used (no white/black)
+# there are 8 colors, 6 of which ca be used (no white/black)
 COLORS = {
     'progress':Fore.GREEN,
     'get':Fore.YELLOW,
     'download':Fore.CYAN,
     'error':Fore.RED,
-    
-    'parse':Fore.BLUE,
-    'convert':Fore.MAGENTA
+    'tag':Fore.BLUE,
+    'delete':Fore.CYAN
 }
 
 def color_category(cat: str) -> str:
@@ -30,7 +29,7 @@ def color_message(msg: str) -> str:
     category = msg.split()[0][1:-1]
     if OPTIONS['no_colors'] or category not in COLORS:
         return msg
-
+    
     return color_category(category) + msg[len(category)+2:]
 
 class ColorFormatter(logging.Formatter):

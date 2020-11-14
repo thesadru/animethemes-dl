@@ -18,7 +18,7 @@ def update_metadata(data: DownloadData):
     for anime in data:
         path = anime['audio_path']
         if path is not None and isfile(path):
-            logger.info(f'readding metadata for {path}')
+            logger.info(f'[tag] readding metadata for {path}')
             add_id3_metadata(
                 path,
                 anime['metadata'],
@@ -33,7 +33,7 @@ def delete_unwanted(wanted: Set[PathLike], folder: PathLike):
         path = join(folder,path)
         if path not in wanted:
             remove(path)
-            logger.info(f'Deleting {path}')
+            logger.info(f'[delete] Deleting {path}')
 
 def delete_all_unwanted(data: DownloadData, video: bool=True, audio:bool=True):
     """
