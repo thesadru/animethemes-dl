@@ -40,7 +40,7 @@ def _update_dict(old: dict, new: dict):
             if k in old:
                 old[k] = new[k]
             else:
-                logger.error(f'Cannot change  value {repr(k)}.')
+                logger.error(f'Cannot change value {repr(k)}.')
     
     return old
 

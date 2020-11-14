@@ -1,6 +1,9 @@
-ffmpeg
-__pycache__*
+# test directories
+anime_themes/
 test*
-*.json
+# binaries
+__pycache__*
 ffmpeg.exe
+# personal files
 .vscode/
+myoptions.json

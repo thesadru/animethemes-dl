@@ -107,7 +107,10 @@ def batch_download_themes(data: DownloadData):
     """
     Batch downloads all a list of `dl_data`.
     """
-    for path in (OPTIONS['download']['audio_folder'],OPTIONS['download']['video_folder']):
+    for path in (
+        OPTIONS['download']['audio_folder'],
+        OPTIONS['download']['video_folder'],
+        OPTIONS['download']['coverart_folder']):
         try: 
             if path:
                 makedirs(path)

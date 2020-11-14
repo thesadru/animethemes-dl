@@ -28,10 +28,7 @@
         "retries": 3,
         "sort": null
     },
-    "statuses": [
-        1,
-        2
-    ],
+    "statuses": [1,2],
     "quiet": false,
     "no_colors": false,
     "ffmpeg": "ffmpeg"
