@@ -1,9 +1,13 @@
 """
 Gets data from myanimelist.net.
 """
-from .utils import add_url_kwargs,Measure
-import requests
 import logging
+
+import requests
+
+from ..errors import MyanimelistException
+from ..models import RawAnimeList
+from .utils import Measure, add_url_kwargs
 
 MALURL = 'https://myanimelist.net/animelist/{user}/load.json'
 
@@ -27,7 +31,7 @@ def get_mal_part(username: str, **kwargs) -> list:
         return r.json()
     else:
         logging.exception(f'User {username} does not exist on MAL.')
-        r.raise_for_status()
+        raise MyanimelistException(f'User {username} does not exist on MAL.')
 
 def get_raw_mal(username: str, **kwargs) -> list:
     """
@@ -45,7 +49,7 @@ def get_raw_mal(username: str, **kwargs) -> list:
             return out
         offset += 300
 
-def sort_mal(data: list) -> list:
+def sort_mal(data: list) -> RawAnimeList:
     """
     Sorts a MAL list and returns a version used for animethemes-dl.
     """
@@ -59,13 +63,13 @@ def sort_mal(data: list) -> list:
             'notes':entry['tags'],
             'malid':entry['anime_id'],
             'title':entry['anime_title'],
-            'cover':entry['anime_image_path'],
+            'cover':entry['anime_image_path'], #inclusing the access token
             'episodes':entry['anime_num_episodes']
         })
     
     return out
 
-def get_mal(username: str, **kwargs) -> list:
+def get_mal(username: str, **kwargs) -> RawAnimeList:
     """
     Gets a MAL list with a username.
     """

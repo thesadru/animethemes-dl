@@ -2,3 +2,5 @@ ffmpeg
 __pycache__*
 test*
 *.json
+ffmpeg.exe
+.vscode/

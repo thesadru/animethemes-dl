@@ -1,11 +1,11 @@
-from .downloader import to_mal_priority,batch_download
-from .printer import fprint
-from .globals import Opts
-from os.path import realpath
 import argparse
-import sys
 import json
+import sys
+from os.path import realpath
 
+from .downloader import batch_download, to_mal_priority
+from .globals import Opts
+from .printer import fprint
 
 __doc__ = """
 Batch downloads themes from every anime you have watched with themes.moe.

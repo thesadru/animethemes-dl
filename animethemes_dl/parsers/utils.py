@@ -3,6 +3,7 @@ utilities for animethemes_dl.parsers
 """
 import time
 
+
 def add_url_kwargs(url,kwargs={}):
     if not kwargs:
         return url
@@ -15,7 +16,7 @@ class Measure:
     """
     def __init__(self):
         self.time = time.time()
-    def get(self,ndigits=3):
+    def get(self,ndigits=2):
         return round(time.time()-self.time,ndigits)
     def __call__(self,ndigits=2):
         return self.get(ndigits)

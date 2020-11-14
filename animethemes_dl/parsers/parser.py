@@ -1,36 +1,33 @@
 """
 Parses data from myanimelist/anilist and themes.moe.
 """
+from ..models import Themes
+from ..options import OPTIONS
 from .anilist import get_anilist
-from .myanimelist import get_mal
 from .animethemes import get_animethemes
+from .myanimelist import get_mal
 
-def animelist_to_dict(animelist: dict) -> dict:
-    """
-    Turns an edited animelist into a dict of {malid:data}.
-    """
-    out = {i:{} for i in range(1,7)}
-    for status in animelist:
-        for anime in animelist[status]:
-            out[status][anime['malid']] = anime
-    return out
 
-def combine_themes(animelist: list, themes: list) -> list:
+def combine_themes(animelist: list, themes: list) -> Themes:
     """
     Combines an animelist with themes.
     """
-    animelist = {anime['malid']:anime for anime in animelist}
-    for i,theme in reversed((*enumerate(themes),)):
-        if theme['animelist']['malid'] in animelist:
-            themes[i]['animelist'].update(
-                animelist[theme['animelist']['malid']]
-            )
-        else:
-            del themes[i]
+    out = []
+    themes = {theme['animelist']['malid']:theme for theme in themes}
+    for anime in animelist:
+        malid = anime['malid']
+        if malid in themes:
+            if not (
+                OPTIONS['animelist']['minscore'] <= anime['score'] and 
+                OPTIONS['animelist']['minpriority'] <= anime['priority']
+            ):
+                continue
+            out.append(themes[malid])
+            out[-1]['animelist'].update(anime)
     
-    return themes
+    return sorted(out,key=OPTIONS['download']['sort'])
 
-def get_themes(username: str, anilist: bool=False, **animelist_args) -> list:
+def get_themes(username: str, anilist: bool=False, **animelist_args) -> Themes:
     """
     Gets data from themes.moe and myanimelist.net/anilist.co.
     Returns a dictionary of anime themes.
