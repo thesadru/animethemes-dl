@@ -302,7 +302,7 @@ def check_errors(options):
         errors.append('No username set.')
     elif not options['animelist']['username'].strip():
         errors.append('Improper username')
-    if not options['download']['audio_folder'] or not options['download']['video_folder']:
+    if not options['download']['audio_folder'] and not options['download']['video_folder']:
         errors.append('No audio or video save folder.')
     if 'filename' in options['download'] and not options['download']['filename'].count('%'):
         errors.append('No format in filename, will have overwrites.')
