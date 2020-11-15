@@ -1,4 +1,3 @@
-from .models import Options
 import logging
 from os import PathLike, makedirs, remove
 from os.path import isfile
@@ -8,10 +7,10 @@ from pySmartDL import SmartDL, utils
 
 from animethemes_dl.options import OPTIONS, setOptions
 
-from .tools import add_id3_metadata, ffmpeg_convert, fix_faulty_url
 from .errors import BadThemesUrl
+from .models import ADownloadData, DownloadData, Options
 from .parsers import get_download_data
-from .models import ADownloadData,DownloadData
+from .tools import add_id3_metadata, compress_files, ffmpeg_convert, fix_faulty_url
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -150,6 +149,9 @@ def batch_download(options: dict=Options):
     )
     batch_download_themes(data)
     logger.info('[progress] finished downloading')
+    
+    if OPTIONS['download']['compression']['root_dir']:
+        compress_files(**OPTIONS['download']['compression'])
 
 if __name__ == '__main__':
     from .models.animelist import SingleAnimeList

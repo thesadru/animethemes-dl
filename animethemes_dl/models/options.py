@@ -21,6 +21,12 @@ FilterOptions = TypedDict(
     }
 )
 
+class CompressionOptions(TypedDict):
+    root_dir: Optional[PathLike]
+    base_name: str
+    format: str
+    base_dir: Optional[PathLike]
+
 class DownloadOptions(TypedDict):
     filename: str
     audio_folder: Optional[PathLike]
@@ -32,6 +38,7 @@ class DownloadOptions(TypedDict):
     timeout: int
     retries: int
     sort: str
+    compression: CompressionOptions
 
 class Options(TypedDict):
     animelist: AnimeListOptions
@@ -71,7 +78,13 @@ DEFAULT = {
         'coverart_folder': None,
         'timeout':5,
         'retries':3,
-        'sort':None
+        'sort':None,
+        'compression':{
+            'root_dir':None,
+            'base_name':'animethemes',
+            'format':'tar',
+            'base_dir':None
+        }
     },
     'statuses':[1,2],
     'quiet': False,

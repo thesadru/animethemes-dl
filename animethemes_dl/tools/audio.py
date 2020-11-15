@@ -79,6 +79,7 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, add_coverart: bool=Fals
     Adds metadata to an MP3 file using mutagens `EasyID3`.
     Uses ID3 v2.4.
     """
+    metadata = metadata.copy() # can't edit the pointer
     logger.info(f"[tag] Adding metadata{' (w/coverart) ' if add_coverart else ' '}for {basename(path)}")
     coverart = metadata.pop('coverart')
     audio = EasyID3(path)
