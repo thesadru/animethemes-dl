@@ -1,14 +1,15 @@
-from animethemes_dl.parsers.dldata import get_download_data
 import argparse
 import json
+import logging
 from json import load
 from os.path import realpath
-import logging
 from pprint import pformat
 
+from animethemes_dl.parsers.dldata import get_download_data
+
 from .downloader import batch_download
+from .options import OPTIONS, _update_dict
 from .tools import repair
-from .options import OPTIONS,_update_dict
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -169,6 +170,29 @@ statuses.add_argument(
 )
 
 # =============================================================================
+compression = parser.add_argument_group('compression')
+compression.add_argument(
+    '--compress-dir',
+    default=None,
+    help="If set, the directory name to compress, should just be the save folder"
+)
+compression.add_argument(
+    '--compress-name',
+    default='animethemes',
+    help="Where to save the the compressed files. Without the extension."
+)
+compression.add_argument(
+    '--compress-format',
+    default='tar',
+    help="Compression format. The extension after compress-name"
+)
+compression.add_argument(
+    '--compress-base',
+    default=None,
+    help="The base dir of compression."
+)
+
+# =============================================================================
 printing = parser.add_argument_group('printing')
 printing.set_defaults(loglevel=2)
 printing.add_argument(
@@ -238,7 +262,13 @@ def parse_args(args):
             "coverart_folder": args.coverart_folder,
             "timeout": args.timeout,
             "retries": args.retries,
-            "sort": args.sort
+            "sort": args.sort,
+            "compression": {
+                "root_dir":args.compress_dir,
+                "base_name":args.compress_name,
+                "format":args.compress_format,
+                "base_dir":args.compress_base
+            }
         },
         "statuses": args.statuses,
         "quiet": args.loglevel>logging.CRITICAL,

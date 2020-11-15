@@ -13,8 +13,9 @@ COLORS = {
     'download':Fore.CYAN,
     'error':Fore.RED,
     'tag':Fore.BLUE,
-    'delete':Fore.CYAN,
-    'repair':Fore.MAGENTA
+    'delete':Fore.BLUE,
+    'repair':Fore.MAGENTA,
+    'compress':Fore.MAGENTA
 }
 
 def color_category(cat: str) -> str:
@@ -27,6 +28,8 @@ def color_message(msg: str) -> str:
     """
     Colors a message
     """
+    if not isinstance(msg,str):
+        return msg
     category = msg.split()[0][1:-1]
     if OPTIONS['no_colors'] or category not in COLORS:
         return msg
