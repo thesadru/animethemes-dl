@@ -1,3 +1,4 @@
+from animethemes_dl.parsers.dldata import get_download_data
 import argparse
 import json
 from json import load
@@ -6,6 +7,7 @@ import logging
 from pprint import pformat
 
 from .downloader import batch_download
+from .tools import repair
 from .options import OPTIONS,_update_dict
 
 logger = logging.getLogger('animethemes-dl')
@@ -29,6 +31,11 @@ parser.add_argument(
     type=realpath,
     help="The settings file in json format. Uses the Options model."
 )
+parser.add_argument(
+    '--repair',
+    action='store_true',
+    help="Deletes unexpected files, readds metadata"
+)
 
 # =============================================================================
 animelist = parser.add_argument_group('animelist')
@@ -36,6 +43,8 @@ animelist = parser.add_argument_group('animelist')
 animelist = animelist.add_argument_group('animelist')
 animelist.add_argument(
     'username',
+    default=None,
+    nargs='?',
     help="Your animelist username."
 )
 animelist.add_argument(
@@ -240,6 +249,8 @@ def parse_args(args):
 
 def check_errors(options):
     errors = []
+    if not options['animelist']['username']:
+        errors.append('No username set.')
     if not options['download']['audio_folder'] or not options['download']['video_folder']:
         errors.append('No audio or video save folder.')
     if not options['animelist']['username'].strip():
@@ -264,7 +275,14 @@ def main():
     
     raise_for_errors(options)
     
-    batch_download(options)
+    if args.repair:
+        repair(get_download_data(
+            OPTIONS['animelist']['username'],
+            OPTIONS['animelist']['anilist'],
+            OPTIONS['animelist']['animelist_args']
+        ))
+    else:
+        batch_download(options)
 
 if __name__ == "__main__":
     main()
