@@ -65,7 +65,7 @@ The possible formats are defined in this table:
 | Format            | Meaning                                       |
 | ----------------- | :-------------------------------------------- |
 | malid             | The MyAnimeList anime id.                     |
-| status            | The watch status of the anime.                 |
+| status            | The watch status of the anime.                |
 | year              | The year the anime was released.              |
 | season            | The season the a nime was released.           |
 | score             | Score of the anime.                           |
@@ -175,6 +175,50 @@ The default options are:
 }
 ```
 > You can generate the options with `python -m animethemes_dl.models.options`.
+
+## code documentation
+The code uses the module `models` that contains models of `typing.TypedDict`.
+Meaning python 3.8 is required.
+Module `parsers` contains all parsers for MAL, Anilist and themes.moe.
+Module tools contains extra tools for `animethemes-dl`.
+
+examples:
+```py
+# parsers module uses API's to get data
+import animethemes_dl.parsers as parsers
+parsers.get_themes(username) # gets raw data
+parsers.get_download_data(username) # gets download data
+
+# models module uses typedDict to help language servers
+import animethemes_dl.models as models
+animelist: RawAnimeList = _myanimefunc()
+metadata: Metadata = _mymetadatafunc2()
+
+# tools have multiple tools used for several stuff
+import animethemes_dl.tools as tools
+tools.ffmpeg_covert(webm_file,mp3_file) # converts a webm file
+tools.COLORS['progress'] = Fore.CYAN # changes colors
+tools.compress_files(base,'zip',root) # compresses a direcotory
+tools.update_metadata(
+  parsers.get_download_data(username),False
+) # updates metadata of all audio files
+
+# you can implement your own batch dl
+import animethemes_dl
+data = parsers.get_download_data(username)
+for theme in data:
+  animethemes_dl.download_themes(theme,True)
+
+# you can directly change options
+animethemes_dl.setOptions(options)
+
+# you can make special catchers
+import animethemes_dl.errors as errors
+try:
+  animethemes_dl.batch_download(data)
+except FfmpegException:
+  print('I have no idea what happened')
+```
 
 # how does it work?
 - parser
