@@ -41,6 +41,7 @@ class Options(TypedDict):
     quiet: bool
     no_colors: bool
     ffmpeg: PathLike
+    ignore_prompts: bool
 
 DEFAULT = {
     'animelist': {
@@ -75,7 +76,8 @@ DEFAULT = {
     'statuses':[1,2],
     'quiet': False,
     'no_colors':False,
-    'ffmpeg': 'ffmpeg'
+    'ffmpeg': 'ffmpeg',
+    'ignore_prompts': False
 }
 
 if __name__ == "__main__":
