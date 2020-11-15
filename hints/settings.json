@@ -1,0 +1,42 @@
+{
+    "animelist": {
+        "username": "",
+        "anilist": false,
+        "animelist_args": {},
+        "minpriority": 0,
+        "minscore": 0
+    },
+    "filter": {
+        "spoilers": true,
+        "nsfw": true,
+        "nocredits": false,
+        "lyrics": false,
+        "bluray": false,
+        "DVD": false,
+        "1080": false,
+        "480": false
+    },
+    "download": {
+        "filename": "%(short_anime_title)s-%(type)s.%(filetype)s",
+        "audio_folder": null,
+        "video_folder": null,
+        "no_redownload": false,
+        "ascii": false,
+        "add_coverart": false,
+        "coverart_folder": null,
+        "timeout": 5,
+        "retries": 3,
+        "sort": null,
+        "compression": {
+            "root_dir": null,
+            "base_name": "animethemes",
+            "format": "tar",
+            "base_dir": null
+        }
+    },
+    "statuses": [1,2],
+    "quiet": false,
+    "no_colors": false,
+    "ffmpeg": "ffmpeg",
+    "ignore_prompts": false
+}

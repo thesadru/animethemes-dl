@@ -1,6 +1,8 @@
-.replit
-ffmpeg
-animethemes_dl/__pycache__/
-test/
-settings.json
-s.json
+# test directories
+anime_themes/
+test*
+# binaries
+__pycache__*
+ffmpeg.exe
+# personal files
+.vscode/
