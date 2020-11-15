@@ -1,3 +1,6 @@
+"""
+AnimeThemes models.
+"""
 from typing import List, TypedDict
 
 from .literals import Season, UrlLike

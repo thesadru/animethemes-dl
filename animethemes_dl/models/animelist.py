@@ -1,3 +1,6 @@
+"""
+MyanimeList and AniList models.
+"""
 from typing import List, TypedDict
 
 from .literals import Priority, Score, Season, Status, UrlLike

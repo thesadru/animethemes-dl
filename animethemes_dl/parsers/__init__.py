@@ -1,3 +1,6 @@
+"""
+Parses data from MAL,Anilist and themes.moe
+"""
 from .anilist import get_anilist
 from .animethemes import get_animethemes
 from .dldata import get_download_data

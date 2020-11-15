@@ -1,3 +1,6 @@
+"""
+Download files with DownloadData.
+"""
 import logging
 from os import PathLike, makedirs, remove
 from os.path import isfile

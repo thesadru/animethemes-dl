@@ -1,3 +1,6 @@
+"""
+Option data type and option defaults.
+"""
 from os import PathLike
 from .literals import Score,Priority,Status
 from typing import Optional,List,TypedDict

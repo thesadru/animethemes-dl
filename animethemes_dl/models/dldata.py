@@ -1,3 +1,6 @@
+"""
+Download data and metadata data types.
+"""
 from os import PathLike
 from typing import List, Literal, Optional, TypedDict
 

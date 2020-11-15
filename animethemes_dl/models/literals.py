@@ -1,3 +1,6 @@
+"""
+Literals of animethemes-dl.
+"""
 from typing import Literal, NewType
 
 UrlLike = str
