@@ -1,4 +1,4 @@
 pySmartDl
-eyed3
+mutagen
 requests
 colorama

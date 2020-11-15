@@ -1,0 +1,26 @@
+{
+    "animelist": {
+        "username": "sadru"
+    },
+    "filter": {
+        "spoilers": false
+    },
+    "download": {
+        "filename": "%(short_anime_title)s-%(type)s.%(filetype)s",
+        "audio_folder": "anime_themes/audio",
+        "video_folder": "anime_themes/video",
+        "no_redownload": true,
+        "add_coverart": true,
+        "coverart_folder": "anime_themes/coverarts",
+        "timeout": 15,
+        "sort": "year",
+        "compression": {
+            "root_dir": "anime_themes",
+            "base_name":"animethemes",
+            "format":"tar",
+            "base_dir":"audio"
+        }
+    },
+    "statuses": [1,2],
+    "ffmpeg": "ffmpeg"
+}
