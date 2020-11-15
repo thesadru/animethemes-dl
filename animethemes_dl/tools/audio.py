@@ -1,3 +1,7 @@
+"""
+Audio tools.
+Includes ffmpeg conversion and id3 tagging.
+"""
 import logging
 from mimetypes import guess_extension, guess_type
 from os import PathLike, system

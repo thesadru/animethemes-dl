@@ -1,5 +1,5 @@
 """
-Does general repair for animethemes-dl. This is mostly for updating
+Does general repair for animethemes-dl. This is mostly for updating.
 """
 import logging
 from os import PathLike, listdir, remove

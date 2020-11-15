@@ -1,3 +1,6 @@
+"""
+Command line version of animethemes-dl.
+"""
 import argparse
 import json
 import logging

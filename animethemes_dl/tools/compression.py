@@ -1,3 +1,6 @@
+"""
+Compress files with shutil.make_archive().
+"""
 from os import PathLike
 import shutil
 import logging

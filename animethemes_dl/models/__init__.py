@@ -1,3 +1,7 @@
+"""
+Models for animethemes-dl.
+Uses TypedDict to add hinting while still using builtin data types.
+"""
 from .animelist import RawAnimeList
 from .animethemes import RawAnimeThemes
 from .themes import Themes

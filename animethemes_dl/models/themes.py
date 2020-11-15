@@ -1,3 +1,6 @@
+"""
+Theme data types.
+"""
 from typing import List, TypedDict
 
 from .animelist import SingleAnimeList

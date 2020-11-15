@@ -1,5 +1,5 @@
 """
-For pretty logging
+Colorama implementation of colored logging.
 """
 import logging
 from colorama import init, Fore

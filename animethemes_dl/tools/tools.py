@@ -1,3 +1,6 @@
+"""
+Random tools for animethemes-dl.
+"""
 import logging
 
 from ..errors import BadThemesUrl

@@ -1,3 +1,6 @@
+"""
+Custom animethemes-dl exceptions and errors.
+"""
 
 class AnimeThemesDLException(Exception): pass
 
