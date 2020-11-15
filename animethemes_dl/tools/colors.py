@@ -13,7 +13,8 @@ COLORS = {
     'download':Fore.CYAN,
     'error':Fore.RED,
     'tag':Fore.BLUE,
-    'delete':Fore.CYAN
+    'delete':Fore.CYAN,
+    'repair':Fore.MAGENTA
 }
 
 def color_category(cat: str) -> str:
