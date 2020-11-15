@@ -6,4 +6,3 @@ __pycache__*
 ffmpeg.exe
 # personal files
 .vscode/
-myoptions.json
