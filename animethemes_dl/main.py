@@ -27,12 +27,19 @@ parser = argparse.ArgumentParser(
     prog='animethemes-dl'
 )
 # =============================================================================
-parser.add_argument(
+utils = parser.add_argument_group('utilities')
+utils.add_argument(
+    '--ffmpeg',
+    metavar="PATH",
+    type=realpath,
+    help="path to ffmpeg, in case it's not in PATH"
+)
+utils.add_argument(
     '-s','--settings','--options',
     type=realpath,
     help="The settings file in json format. Uses the Options model."
 )
-parser.add_argument(
+utils.add_argument(
     '--repair',
     action='store_true',
     help="Deletes unexpected files, readds metadata"
@@ -40,12 +47,9 @@ parser.add_argument(
 
 # =============================================================================
 animelist = parser.add_argument_group('animelist')
-
-animelist = animelist.add_argument_group('animelist')
 animelist.add_argument(
     'username',
     default=None,
-    metavar="USERNAME",
     nargs='?',
     help="Your animelist username."
 )
@@ -54,9 +58,10 @@ animelist.add_argument(
     action='store_true',
     help="Use Anilist instead of MyAnimeList"
 )
+
 animelist.add_argument(
     '--animelist-args',
-    type=dict,
+    type=lambda x:dict(i.split('=') for i in x.split(',')),
     default={},
     metavar="KWARGS",
     help="Animelist arguments, url args for MAL"
@@ -241,13 +246,6 @@ printing.add_argument(
     help="Does not print in color."
 )
 
-utils = parser.add_argument_group('utilities')
-utils.add_argument(
-    '--ffmpeg',
-    metavar="PATH",
-    type=realpath,
-    help="path to ffmpeg, in case it's not in PATH"
-)
 
 def load_settings(settings):
     if settings is None:
@@ -299,10 +297,10 @@ def check_errors(options):
     errors = []
     if not options['animelist']['username']:
         errors.append('No username set.')
+    elif not options['animelist']['username'].strip():
+        errors.append('Improper username')
     if not options['download']['audio_folder'] or not options['download']['video_folder']:
         errors.append('No audio or video save folder.')
-    if not options['animelist']['username'].strip():
-        errors.append('Improper username')
     if 'filename' in options['download'] and not options['download']['filename'].count('%'):
         errors.append('No format in filename, will have overwrites.')
     return errors

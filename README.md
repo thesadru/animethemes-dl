@@ -1,183 +1,197 @@
-<div align="center">
-  <h1>animethemes-dl</h1>
-  Download anime themes with myanimelist.
-  
-  ![GitHub](https://img.shields.io/github/license/thesadru/animethemes-dl)
-  ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/thesadru/animethemes-dl)
-  ![GitHub last commit](https://img.shields.io/github/last-commit/thesadru/animethemes-dl)
-  ![GitHub Release](https://img.shields.io/github/v/release/thesadru/animethemes-dl?include_prereleases)
-</div>
+# animethemes-dl
+![GitHub](https://img.shields.io/github/license/thesadru/animethemes-dl)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/thesadru/animethemes-dl)
+![GitHub last commit](https://img.shields.io/github/last-commit/thesadru/animethemes-dl)
+![GitHub Release](https://img.shields.io/github/v/release/thesadru/animethemes-dl?include_prereleases)
 
 # what's this project
-This project allows you to automaticaly download opening and ending songs from all of your favorite anime without the need of downoading everything yourself. Since almost every weeb uses MAL to track the anime he's watching, this tool is really useful, as every information you need to give it has been written down already. All you need to do is to enter your [MAL](https://myanimelist.net) or [AniList](https://anilist.co) username.
+This project allows you to automaticaly download opening and ending songs from all of your favorite anime without the need of downloading everything yourself. Since almost every weeb uses MAL to track the anime he's watching, this tool is really useful, as every information you need to give it has been written down already. All you need to do is to enter your [MAL](https://myanimelist.net) or [AniList](https://anilist.co) username.
+
 # disclaimer
-All videos are downloaded from [animethemes.moe](https://themes.moe/) and originally belong to studios who made them. You are not allowed to distribute any videos downloaded, unless you have permission from the studios that made it and animethemes.moe.
-Note that owning and distributing the program itself is allowed.
+All videos are downloaded from [animethemes.moe](https://animethemes.moe/). If you plan on using this program just for looking at openings, I recommend using [themes.moe](https://themes.moe/) instead. This program is made for creating your own playlist and such.
+
+# what's this project for
+This project was made for batch downloading themes from anime you have watched, but is programmed so it's easily improved, making it possible to add very easily. It's made with both command line usage and with python as a module.
+
 # how to install
-- clone this repository or download it from pip with `pip install animethemes-dl`
-- if you cloned, do `pip install -r requirements.txt` to install all required libraries
+- clone this repository from [github.com](https://github.com/thesadru/animethemes-dl) or download it from pip with `pip install animethemes-dl`
+- if you cloned, do `pip install -r requirements.txt` to install all required modules
 - install ffmpeg into the same folder or in PATH
-# usage
-- make sure you have ffmpeg and python installed
-- run `animethemes-dl.[bat|sh] -h ` for help
-- run `animethemes-dl.[bat|sh] <username> <settings>` to download your songs
-- if you have installed with pip, running `animthemes-dl` should work.
-## guide
-you may need to use `python main.py` instead of `animethemes-dl`
 
-The most barebones download requires a username and a save folder.
-Username refferes to your MAL username, alternatively if you want to use AniList, you need to use `--anilist`.
-Save folders can be set by `-a` (audio) and `-v` (video).
-```
-animethemes-dl sadru -a "themes"
-animethemes-dl sadru --anilist -v "anime oped"
-```
+# usage in command line
+make sure you have ffmpeg and python installed
+possible commands: `animethemes-dl.bat` in windows, `animethemes-dl.sh` in linux. `animethemes-dl` if installed with pip. `python -m animethemes-dl` with python.
+> All of these commands will be reffered to as `animethemes-dl` in the documentation.
 
-Use `--settings` to get settings from a json file.
-```
-animethemes-dl --settings "settings.json"
-```
+## command line documentation
+The script should raise errors in case you pass in an improper arg, but sometimes an error won't be raised if the error is not obvious, therefore make sure you read the documentation before running it.
 
-If you want extra anime to be downloaded use `--id`.
-Ids passed must be MAL's anime id.
-```
-animethemes-dl --id 42364 31240
-```
+You must set a username and a save folder.
 
-Set the audio format with `--audio-format`. Works only if converting locally
-```
-animethemes-dl --audio-format wav
-```
+### animelist
+You must set a username. By default usernames are assumed to be a MAL user, you can use anilist instead with `--anilist`.
 
-You can do some filtering based on your animelist. either by status or by score/priority.
-All videos that you are currently watching and have completed are downloaded. You can add other statuses by using `--on-hold`, `--dropped` or `--planned`.
-Set the minimum score (range 0-10) with `--minscore` and minimum priority (Low,Medium,High) with `--minpriority`.
-```
-animethemes-dl --minscore 7 --minpriority High
-animethemes-dl --dropped
-```
+`--animelist-args` can be:
+- url args for MAL ``
+- `query` and `variables` for POST request for AniList
+> `--animelist-args` are passed as a `<key>:<value>` pairs, for example: `sort1=1,sort2=14`
 
-Currently you can filter out all NSFW themes with `--sfw` and all themes with dialogue in them with `--no-dialogue`.
-There may be cases where there's no dialogue tag but it still has dialogue, that is because this theme happens to have important dialogue in them (complain to animethemes about this). If you don't want that use `--no-spoilers`.
-```
-animethemes-dl --sfw --no-dialogue --no-spoilers
-```
+### animelist filters
+There are filters for minimum score and priority.
 
-When downloading, you can choose to not redownload songs that are already in the save folder with `-r`.
-If your download keeps missing some themes, you can use `--retry-forever` to force the download, this is currently highly unreliable.
-To fix problems with downloading you can use `--local-convert` which converts themes to audio with ffmpeg instead of having it converted and then downloaded. This is may be slow however, so you can use `--try-both` to try the chosen method, and then the other one.
-```
-animethemes-dl --local-convert --retry-forever
-animethemes-dl --try-both
-```
+`--minscore` is the minimum score between 0 and 10.
+`--minpriority` is the minimum priority. For mal, use `Low=0,Medium=1,High=2`
 
-You can modify filenames by using `--filename` (look at filename naming for more info). If your system/player cannot read Japanese characters or emojis, use `--ascii` to remove them from the filename.
-```
-animethemes-dl --filename "%a-%t.%e" --ascii
-```
+### tag filters
+You can filter out spoilers (with `--no-spoilers`) and nsfw (with `--no-nsfw`).
+You can force tags with `--required-tags`, the possible tags are:
+| Tag       | Meaning                                    | True Tag |
+| :-------: | :----------------------------------------- | -------- |
+| nocredits | No captions/no credits                     | NC       |
+| lyrics    | Video includes English lyrics as subtitles | Lyrics   |
+| bluray    | Video is sourced from a Blu-ray disc       | BD       |
+| DVD       | Video is sourced from a DVD                | DVD      |
+| 1080      | 1080p                                      | 1080     |
+| 480       | 480p                                       | 480      |
 
-Add coverart to mp3 files with `--coverart`. Uses ID3 COVER_ART (id 3) to do so. 
-CURRENTLY DOESN'T WORK.
-```
-animethemes-dl --coverart
-```
 
-Set path to ffmpeg with `--ffmpeg`. Most bugs might come from ffmpeg not being 'trusted'. Try `./ffmpeg`.
-```
-animethemes-dl --ffmpeg "../../utilities/ffmpeg"
-```
+### download
+Downloads are by default disabled for both video and audio.
+You can enable it by setting a save folder. Save folders are set with `-a` (audio) and `-v` (video).
 
-You can choose which tags you preffer by using `--preffered` (look at preffered tags for more info).
-```
-animethemes-dl --preffered Lyrics Cen 60FPS
-```
+The filename format can be changed with `--filename`.
 
-You can turn off printing with `--quiet`, turn off color with `--no-color`.
-Print all args with `--print-settings` for bugfixing.
-```
-animethemes-dl --quiet
-animethemes-dl --no-color --print-settings
-```
+The possible formats are defined in this table:
+| Format            | Meaning                                       |
+| ----------------- | :-------------------------------------------- |
+| malid             | The MyAnimeList anime id.                     |
+| status            | The watch status of the anime.                 |
+| year              | The year the anime was released.              |
+| season            | The season the a nime was released.           |
+| score             | Score of the anime.                           |
+| priority          | Watch priority of the anime.                  |
+| episodes          | Amount of episodoes in the anime.             |
+| anime_title       | Title of the anime.                           |
+| title             | Title of the song.                            |
+| type              | Type of the anime theme.                      |
+| shortype          | Type of the anime without index.              |
+| version           | Version of the themes, set by animethemes.    |
+| short_anime_title | Title of the anime made for use in filenames. |
+| original_filename | Original filename of the video file.          |
+| filetype          | Filetype of the theme. webm or mp3            |
+> formats should be used as a python format string, meaning that it will be put as `%(format)s`.
+For example `%(short_anime_title)s-%(type)s.%(filetype)s`
 
-## usage examples
-These are some of the settings I (may) personally use.
-```
-animethemes-dl sadru -a "anime themes"
-animethemes-dl sadru -a "anime themes" --minscore 5 -r -d --try-both --ffmpeg "./ffmpeg" --coverart --filename "%a%t.%e"
-animethemes-dl sadru -a "anime themes" --anilist --minpriority Medium -r --audio-format ogg --sfw
-```
+> Windows and Linux banned characters will be removed by default, to remove those and also unicode characters use `--ascii`
 
-# filename naming
-Filename are by the default named `%A %t (%S).%e` which returns for example: `AppareRanman OP (I got it!).webm`
-variables are:
-```
-%% = percent symbol ("%")
-%a = short anime name (no spaces)
-%A = long anime name (spaced)
-%t = theme type [OP | ED]
-%s = song name (underscored)
-%S = song name (spaced)
-%e = extension [webm | mp3]
-```
-# preffered tags
-You can value some tags over other by adding it to the preffered tags.
-They are valued by asigning points to them, like this: `['NC','BD','720']` will be: `NC:3, BD:2, 720:1`.
-By default more tags will be put higher.
-avalible tags:
+You can disable redownloading with `-r`. This is highly recommended.
 
-| Tag     | Meaning |
-|:-------:|:--------|
-| NC	    | No captions/no credits |
-| Subbed  |	Video includes subtitles of dialogue |
-| Lyrics  |	Video includes English lyrics as subtitles |
-| Cen	    | Video is censored |
-| Uncen	  | Video is uncensored from original broadcast |
-| 60FPS	  | Video is 60 frames per second |
-| Trans	  | Part of the anime episode transitions into the video |
-| BD	    | Video is sourced from a Blu-ray disc |
-| 420     | 420p |
-| 720	    | 720p |
-| 1080	  | 1080p |
-# settings file
-default settings look like:
+The order of downloading can be set with `--sort`. This sorts the download data.
+
+The possible sorts are defined in this table:
+| Sort string | Meaning                           |
+| ----------- | --------------------------------- |
+| malid       | The MyAnimeList animeid.          |
+| title       | Title of the anime.               |
+| status      | The watch status of the anime.    |
+| score       | Score of the anime.               |
+| priority    | Watch priority of the anime.      |
+| notes       | Your notes of the anime           |
+| episodes    | Amount of episodoes in the anime. |
+| year        | The year the anime was released.  |
+
+You can add a coverart to audio files with `--coverart`, they can be saved in `--coverart-folder`.
+
+Downloader timeout can be changed with `--timeout` and max amount of retries with `--retries`.
+
+### statuses
+You can download anime that you have `--on-hold`,`--dropped` or `--planned`.
+
+### compression
+Downloaded files can be compressed in case you want to save them.
+
+It will be enabled by setting a directory you want to compress with `--compress-dir`, this should be the same directory as you chosen one. The destination file is set with `--compress-name`, set it without the extension.
+You can choose the `--compress-format`, this must be a format allowed by `shutils.make_archive`.
+
+Additionally you can set the `--compress-base`.
+
+### printing
+You can set the loglevel with `--loglevel`. This will set the `logging.setLevel(x*10)`.
+There are quick commands `--quiet` (print none) and `--verbose` (print all). To restrict download and ffmpeg messages, you MUST use `--quiet`.
+
+You can disable color with `--no-color`.
+
+### utilities
+In case you haven't added ffmpeg to path, you can set the path with `--ffmpeg`.
+
+You can `--repair` in case the script made some errors or you picked wrong options. This will delete unexpected files and readd metadata.
+
+### settings
+You can load options from a file with `--options`, the file is in json format.
+
+The default options are:
 ```json
 {
-    "username": "",
-    "anilist": false,
-    "audio": null,
-    "video": null,
-    "status": [1,2],
-    "print_settings": false,
-    "id":[],
-    "minscore": 0,
-    "minpriority": 0,
-    "no_redownload": false,
-    "no_dialogue": false,
-    "sfw": false,
-    "filename": "",
-    "retry_forever": false,
-    "audio_format": "mp3",
-    "ascii": false,
-    "coverart": false,
+    "animelist": {
+        "username": "",
+        "anilist": false,
+        "animelist_args": {},
+        "minpriority": 0,
+        "minscore": 0
+    },
+    "filter": {
+        "spoilers": true,
+        "nsfw": true,
+        "nocredits": false,
+        "lyrics": false,
+        "bluray": false,
+        "DVD": false,
+        "1080": false,
+        "480": false
+    },
+    "download": {
+        "filename": "%(short_anime_title)s-%(type)s.%(filetype)s",
+        "audio_folder": null,
+        "video_folder": null,
+        "no_redownload": false,
+        "ascii": false,
+        "add_coverart": false,
+        "coverart_folder": null,
+        "timeout": 5,
+        "retries": 3,
+        "sort": null,
+        "compression": {
+            "root_dir": null,
+            "base_name": "animethemes",
+            "format": "tar",
+            "base_dir": null
+        }
+    },
+    "statuses": [1,2],
+    "quiet": false,
+    "no_colors": false,
     "ffmpeg": "ffmpeg",
-    "local_convert": false,
-    "try_both": false,
-    "preffered": [],
-    "no_color": false,
-    "quiet": true
+    "ignore_prompts": false
 }
 ```
+> You can generate the options with `python -m animethemes_dl.models.options`.
+
 # how does it work?
-This code grabs your animelist data, filters it based off your settings, puts it through an api and then downloads it
-- get your anime data
-  - pull data from MAL/AniList
-  - pull data from animethemes
-  - sort them based on status and mirrors
+- parser
+  - get data from MAL/AniList
+  - get data from themes.moe
+  - combine data
+  - filter out unwanted themes
+  - create download data
 - download
-  - filter out spoilers/NSFW
-  - download song (and convert)
+  - download video file
+  - convert video to audio
+    - convert with ffmpeg
+    - add mp3 metadata
+- optional
+  - compress files
+
 # TODO
 - code optimizations
+- improve code documentation
 - add track, artist and description metadata
-- add progress to download
-- add an option to delete files that would have been filtered out
