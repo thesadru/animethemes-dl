@@ -45,6 +45,7 @@ animelist = animelist.add_argument_group('animelist')
 animelist.add_argument(
     'username',
     default=None,
+    metavar="USERNAME",
     nargs='?',
     help="Your animelist username."
 )
@@ -57,6 +58,7 @@ animelist.add_argument(
     '--animelist-args',
     type=dict,
     default={},
+    metavar="KWARGS",
     help="Animelist arguments, url args for MAL"
 )
 
@@ -65,12 +67,14 @@ animelist_filters.add_argument(
     '--minscore',
     type=int,
     default=0,
-    help="Minimum score that an anime must have to be downloaded (1-10 scale)"
+    metavar="INT[0-10]",
+    help="Minimum score that an anime must have to be downloaded (0-10 scale)"
 )
 animelist_filters.add_argument(
     '--minpriority',
     type=int,
     default=0,
+    metavar="INT[0-2]",
     help="Minimum priority that an anime must have to be downloaded (0-2 scale)"
 )
 
@@ -88,6 +92,7 @@ tag_filters.add_argument(
 tag_filters.add_argument(
     '--required-tags','--tags',
     default=[],
+    metavar="TAGS",
     nargs='+',
     help="Required tags for themes, check README for possible tags."
 )
@@ -97,15 +102,18 @@ download = parser.add_argument_group('download')
 download.add_argument(
     '-a','--audio','--audio-folder',
     type=realpath,
+    metavar="PATH",
     help="Audio save folder."
 )
 download.add_argument(
     '-v','--video','--video-folder',
     type=realpath,
+    metavar="PATH",
     help="Video save folder."
 )
 download.add_argument(
     '--filename','--filename-format',
+    metavar="FORMAT",
     help="A format string for filenames, check README for possible args."
 )
 download.add_argument(
@@ -120,6 +128,7 @@ download.add_argument(
 )
 download.add_argument(
     '--sort',
+    metavar="STR",
     help="Sorts themes by animelist args, check README for possible args."
 )
 download.add_argument(
@@ -129,18 +138,21 @@ download.add_argument(
 )
 download.add_argument(
     '--coverart-folder',
+    metavar="PATH",
     help="Saves all coverarts to a folder."
 )
 download.add_argument(
     '--timeout',
     type=int,
     default=5,
+    metavar="INT",
     help="Timeouts after x seconds."
 )
 download.add_argument(
     '--retries','--max-retries',
     type=int,
     default=3,
+    metavar="INT",
     help="Max retries"
 )
 
@@ -174,21 +186,25 @@ compression = parser.add_argument_group('compression')
 compression.add_argument(
     '--compress-dir',
     default=None,
+    metavar="PATH",
     help="If set, the directory name to compress, should just be the save folder"
 )
 compression.add_argument(
     '--compress-name',
     default='animethemes',
+    metavar="PATH",
     help="Where to save the the compressed files. Without the extension."
 )
 compression.add_argument(
     '--compress-format',
     default='tar',
-    help="Compression format. The extension after compress-name"
+    metavar="COMPRESS_FORMAT",
+    help="Compression format, the extension after compress-name. Check README for possible formats."
 )
 compression.add_argument(
     '--compress-base',
     default=None,
+    metavar="LOCAL_PATH",
     help="The base dir of compression."
 )
 
@@ -211,10 +227,11 @@ printing.add_argument(
 )
 printing.add_argument(
     '--loglevel',
-    dest='loglevel',
-    action='store',
     type=int,
     choices=range(1,6),
+    metavar="INT[1-6]",
+    dest='loglevel',
+    action='store',
     help="Sets the loglevel, 2 by default. Uses logging as the loglevel, \
           meaning lower the level, the more information there will be."
 )
@@ -227,6 +244,7 @@ printing.add_argument(
 utils = parser.add_argument_group('utilities')
 utils.add_argument(
     '--ffmpeg',
+    metavar="PATH",
     type=realpath,
     help="path to ffmpeg, in case it's not in PATH"
 )
