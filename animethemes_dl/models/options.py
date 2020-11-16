@@ -3,7 +3,7 @@ Option data type and option defaults.
 """
 from os import PathLike
 from .literals import Score,Priority,Status
-from typing import Optional,List,TypedDict
+from typing import Optional,List,TypedDict,Literal
 
 _TAGS_TUPLES = [('nocredits','NC'),('lyrics','Lyrics'),('bluray','BD'),
                 ('DVD','DVD'),('1080','1080'),('480','480')]
@@ -24,6 +24,10 @@ FilterOptions = TypedDict(
     }
 )
 
+class CoverartOptions(TypedDict):
+    resolution: Literal[0,1,2,3]
+    folder: Optional[PathLike]
+
 class CompressionOptions(TypedDict):
     root_dir: Optional[PathLike]
     base_name: str
@@ -36,11 +40,10 @@ class DownloadOptions(TypedDict):
     video_folder: Optional[PathLike]
     no_redownload: bool
     ascii: bool
-    add_coverart: bool
-    coverart_folder: Optional[PathLike]
     timeout: int
     retries: int
     sort: str
+    coverart: CoverartOptions
     compression: CompressionOptions
 
 class Options(TypedDict):
@@ -77,11 +80,13 @@ DEFAULT = {
         'video_folder':None,
         'no_redownload':False,
         'ascii':False,
-        'add_coverart':False,
-        'coverart_folder': None,
         'timeout':5,
         'retries':3,
         'sort':None,
+        'coverart':{
+            'resolution':0,
+            'folder': None,
+        },
         'compression':{
             'root_dir':None,
             'base_name':'animethemes',

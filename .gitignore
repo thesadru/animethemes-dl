@@ -1,5 +1,6 @@
 # test directories
 anime_themes/
+animethemes.tar
 test*
 # binaries
 __pycache__*

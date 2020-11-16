@@ -4,7 +4,7 @@ Includes ffmpeg conversion and id3 tagging.
 """
 import logging
 from mimetypes import guess_extension, guess_type
-from os import PathLike, system
+from os import PathLike, system, listdir
 from os.path import basename, isfile, join, splitext
 from typing import Tuple
 
@@ -15,8 +15,23 @@ from mutagen.id3 import APIC, ID3
 from ..errors import FfmpegException
 from ..models import Metadata, UrlLike
 from ..options import OPTIONS
+from ..parsers.anilist import ALURL
 
 logger = logging.getLogger('animethemes-dl')
+
+COVERARTQUERY = """
+query Media($malid: Int) {
+  Media(idMal: $malid) {
+    idMal
+    coverImage {
+      extraLarge
+      large
+      medium
+      # color
+    }
+  }
+}
+"""
 
 def ffmpeg_convert(old: str, new: str):
     """
@@ -33,29 +48,55 @@ def ffmpeg_convert(old: str, new: str):
         logger.error(f'ffmpeg failed to convert "{old}" to "{new}".')
         raise FfmpegException('Ffmpeg failed to convert, check if in path.')
 
+def fetch_coverart(malid: int, size:int, query:str=COVERARTQUERY, **variables) -> str:
+    """
+    Returns a coverart url of 1-3 resolution.
+    """
+    variables['malid'] = int(malid)
+    json_arg = {'query':query, 'variables':variables}
+    
+    r = requests.post(ALURL,json=json_arg)
+    if r.status_code == 200:
+        data = r.json()
+    else:
+        return r.raise_for_status()
+    
+    covers = data['data']['Media']['coverImage']
+    return covers[{
+        1:'medium',
+        2:'large',
+        3:'extraLarge'
+    }[size]]
+
 def get_coverart(url: UrlLike, metadata: Metadata=None) -> Tuple[bytes,str,str]:
     """
     Gets coverart for an mp3 file, it's description and it's mime type.
     """
+    coverart_folder = OPTIONS['download']['coverart']['folder']
+    resolution = OPTIONS['download']['coverart']['resolution']
+    malid = metadata['discnumber']
     
-    if url.count('?s='):
-        mimetype = guess_type(url.split('?')[0])[0] # MAL has access tokens, so we need to get only the url
-        desc = 'Coverart from "myanimelist.net"'
-    else:
-        mimetype = guess_type(url)[0]
-        desc = 'Coverart from "anilist.co"'
+    path = None; data = None
     
-    if OPTIONS['download']['coverart_folder'] is None or metadata is None:
-       return requests.get(url).content,desc,mimetype
+    if coverart_folder:
+        for path in listdir(coverart_folder):
+            if malid in path:
+                path = join(coverart_folder,path)
+                data = open(path,'rb').read()
     
-    coverart_filename = basename(splitext(metadata['discnumber'])[0]) + guess_extension(mimetype)
-    coverart_path = join(OPTIONS['download']['coverart_folder'],coverart_filename)
-    
-    if isfile(coverart_path):
-        data = open(coverart_path,'rb').read()
-    else:
+    if data is None:
+        if resolution > 1:
+            logger.debug(f'Fetching coverart for {malid} ({resolution})')
+            url = fetch_coverart(malid,resolution)
         data = requests.get(url).content
-        open(coverart_path,'wb').write(data)
+        extension = splitext(url.split('?s=')[0])[1]
+        path = join(coverart_folder,str(malid)+extension)
+        open(path,'wb').write(data)
+    
+    logger.debug(f'Added coverart of size {len(data)} to {malid}.')
+    
+    mimetype = guess_type(path)
+    desc = f"{malid}, resolution {resolution}/3"
     
     return data,desc,mimetype
 
@@ -83,10 +124,16 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, add_coverart: bool=Fals
     Adds metadata to an MP3 file using mutagens `EasyID3`.
     Uses ID3 v2.4.
     """
+    # delete all tags
+    audio = ID3(path)
+    audio.clear()
+    audio.save()
+    
     metadata = metadata.copy() # can't edit the pointer
     logger.info(f"[tag] Adding metadata{' (w/coverart) ' if add_coverart else ' '}for {basename(path)}")
     coverart = metadata.pop('coverart')
     audio = EasyID3(path)
+    audio.clear()
     audio.update(metadata)
     audio.save()
     

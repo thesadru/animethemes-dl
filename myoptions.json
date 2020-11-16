@@ -10,10 +10,12 @@
         "audio_folder": "anime_themes/audio",
         "video_folder": "anime_themes/video",
         "no_redownload": true,
-        "add_coverart": true,
-        "coverart_folder": "anime_themes/coverarts",
         "timeout": 15,
         "sort": "year",
+        "coverart": {
+            "resolution":1,
+            "folder":"anime_themes/coverarts"
+        },
         "compression": {
             "root_dir": "anime_themes",
             "base_name":"animethemes",

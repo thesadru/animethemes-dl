@@ -141,8 +141,13 @@ download.add_argument(
 )
 download.add_argument(
     '--coverart',
-    action='store_true',
-    help="Adds coverart to audio files."
+    type=int,
+    default=0,
+    const=1,
+    choices=[0,1,2,3],
+    nargs='?',
+    metavar="INT[1,2,3]",
+    help="Adds coverart to audio files. You can add a resolution in range 1-3."
 )
 download.add_argument(
     '--coverart-folder',
@@ -277,11 +282,13 @@ def parse_args(args):
             "video_folder": args.video,
             "no_redownload": args.no_redownload,
             "ascii": args.ascii,
-            "add_coverart": args.coverart,
-            "coverart_folder": args.coverart_folder,
             "timeout": args.timeout,
             "retries": args.retries,
             "sort": args.sort,
+            "coverart": {
+                "resolution":args.coverart,
+                "folder":args.coverart_folder
+            },
             "compression": {
                 "root_dir":args.compress_dir,
                 "base_name":args.compress_name,
