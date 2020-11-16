@@ -22,11 +22,13 @@
         "video_folder": null,
         "no_redownload": false,
         "ascii": false,
-        "add_coverart": false,
-        "coverart_folder": null,
         "timeout": 5,
         "retries": 3,
         "sort": null,
+        "coverart": {
+            "resolution": 0,
+            "folder": null
+        },
         "compression": {
             "root_dir": null,
             "base_name": "animethemes",

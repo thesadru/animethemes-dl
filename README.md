@@ -100,7 +100,7 @@ The possible sorts are defined in this table:
 | episodes    | Amount of episodoes in the anime. |
 | year        | The year the anime was released.  |
 
-You can add a coverart to audio files with `--coverart`, they can be saved in `--coverart-folder`.
+You can add a coverart to audio files with `--coverart`, `--coverart` takes in a resolution, if set, image will be fetched from anilist.co, with high resolutions it's recommended to save them in `--coverart-folder`.
 
 Downloader timeout can be changed with `--timeout` and max amount of retries with `--retries`.
 
@@ -155,11 +155,13 @@ The default options are:
         "video_folder": null,
         "no_redownload": false,
         "ascii": false,
-        "add_coverart": false,
-        "coverart_folder": null,
         "timeout": 5,
         "retries": 3,
         "sort": null,
+        "coverart": {
+            "resolution": 0,
+            "folder": null
+        },
         "compression": {
             "root_dir": null,
             "base_name": "animethemes",

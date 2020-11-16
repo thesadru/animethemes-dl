@@ -63,12 +63,15 @@ def download_video(data: ADownloadData, use_temp: bool=False):
         obj.stop()
         quit(e)
     
+    dest = obj.get_dest()
+    
     if obj.get_dl_size() <= 0x100000: # less than MB probably means a faulty url
         data['url'] = fix_faulty_url(data)
-        remove(obj.get_dest())
+        if dest and isfile(dest):
+            remove(dest)
         download_theme(data) # I gave up and made the function recursive
     
-    return obj.get_dest()
+    return dest
 
 def convert_audio(data: ADownloadData, video_path: PathLike=None):
     """
@@ -83,7 +86,7 @@ def convert_audio(data: ADownloadData, video_path: PathLike=None):
         if isfile(data['audio_path']):
             remove(data['audio_path'])
         quit(e)
-    add_id3_metadata(data['audio_path'],data['metadata'],OPTIONS['download']['add_coverart'])
+    add_id3_metadata(data['audio_path'],data['metadata'],OPTIONS['download']['coverart']['resolution'])
 
 def download_theme(data: ADownloadData, dlvideo: bool=True, dlaudio:bool=True):
     """
@@ -112,7 +115,7 @@ def batch_download_themes(data: DownloadData):
     for path in (
         OPTIONS['download']['audio_folder'],
         OPTIONS['download']['video_folder'],
-        OPTIONS['download']['coverart_folder']):
+        OPTIONS['download']['coverart']['folder']):
         try: 
             if path:
                 makedirs(path)
@@ -126,7 +129,7 @@ def batch_download_themes(data: DownloadData):
         
         logger.info(f"[download] \"{theme['metadata']['album']} | {theme['metadata']['title']}\" (#{index})")
         
-        for retry in range(OPTIONS['download']['retries']):
+        for retry in range(1,OPTIONS['download']['retries']):
             try:
                 download_theme(theme,dlvideo,dlaudio)
             except BadThemesUrl:

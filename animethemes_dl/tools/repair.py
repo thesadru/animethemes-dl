@@ -2,7 +2,7 @@
 Does general repair for animethemes-dl. This is mostly for updating.
 """
 import logging
-from os import PathLike, listdir, remove
+from os import PathLike, listdir, remove, makedirs
 from os.path import isfile,join,realpath
 from typing import Set
 
@@ -29,8 +29,7 @@ def update_metadata(data: DownloadData, need_permission: bool=True) -> int:
             return 0
     
     for path,metadata in totag:
-        logger.info(f'[tag] readding metadata for {path}')
-        add_id3_metadata(path,metadata,OPTIONS['download']['add_coverart'])
+        add_id3_metadata(path,metadata,OPTIONS['download']['coverart']['resolution'])
     
     return len(totag)
 
@@ -44,6 +43,9 @@ def delete_unwanted(wanted: Set[PathLike], folder: PathLike, need_permission: bo
         path = realpath(join(folder,path))
         if path not in wanted:
             todelete.append(path)
+    
+    if not todelete:
+        return 0
     
     if need_permission:
         answer = input(f'Delete {len(todelete)} files from {folder}? [y/n] ')
@@ -74,10 +76,25 @@ def delete_all_unwanted(data: DownloadData, video: bool=True, audio: bool=True, 
     if audio: total+=delete_unwanted(audiopaths,OPTIONS['download']['audio_folder'],need_permission)
     return total
 
+def create_folders():
+    """
+    Generates all folders used by animethemes-dl.
+    """
+    for path in (
+        OPTIONS['download']['audio_folder'],
+        OPTIONS['download']['video_folder'],
+        OPTIONS['download']['coverart']['folder']):
+        try: 
+            if path:
+                makedirs(path)
+        except FileExistsError:
+            pass
+
 def repair(data: DownloadData):
     """
     Deletes unwanted files and updates metadata
     """
+    create_folders()
     deleted = delete_all_unwanted(data,not OPTIONS['ignore_prompts'])
     tagged = update_metadata(data,not OPTIONS['ignore_prompts'])
     logger.info(f'[repair] deleted {deleted} files and retagged {tagged} audio files.')
@@ -90,8 +107,6 @@ if __name__ == "__main__":
     setOptions({
         'download':{
             'audio_folder':'test/anime_themes/audio',
-            'add_coverart':True,
-            'coverart_folder':'test/anime_themes/coverarts'
         }
     })
     repair(get_download_data('sadru'))
