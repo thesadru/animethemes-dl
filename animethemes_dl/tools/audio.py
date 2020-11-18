@@ -128,12 +128,12 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, add_coverart: bool=Fals
     logger.info(f"[tag] Adding metadata{' (w/coverart) ' if add_coverart else ' '}for {basename(path)}")
     audio = ID3(path)
     audio.clear()
-    audio['TALB'] = TALB(text=metadata['album'])
-    audio['TIT2'] = TIT2(text=metadata['title'])
-    audio['TIT3'] = TIT3(text=metadata['version'])
-    audio['TCON'] = TCON(text=metadata['genre'])
-    audio['TENC'] = TENC(text=metadata['encodedby'])
-    audio['TPOS'] = TPOS(text=metadata['discnumber'])
+    audio.add(TALB(text=metadata['album']))
+    audio.add(TIT2(text=metadata['title']))
+    audio.add(TIT3(text=metadata['version']))
+    audio.add(TCON(text=metadata['genre']))
+    audio.add(TENC(text=metadata['encodedby']))
+    audio.add(TPOS(text=metadata['discnumber']))
     audio.save()
     
     if add_coverart:
