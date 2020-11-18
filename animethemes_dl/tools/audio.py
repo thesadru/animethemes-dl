@@ -10,7 +10,8 @@ from typing import Tuple
 
 import requests
 from mutagen.easyid3 import EasyID3
-from mutagen.id3 import APIC, ID3
+from mutagen.id3 import ID3
+from mutagen.id3._frames import *
 
 from ..errors import FfmpegException
 from ..models import Metadata, UrlLike
@@ -124,21 +125,19 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, add_coverart: bool=Fals
     Adds metadata to an MP3 file using mutagens `EasyID3`.
     Uses ID3 v2.4.
     """
-    # delete all tags
+    logger.info(f"[tag] Adding metadata{' (w/coverart) ' if add_coverart else ' '}for {basename(path)}")
     audio = ID3(path)
     audio.clear()
-    audio.save()
-    
-    metadata = metadata.copy() # can't edit the pointer
-    logger.info(f"[tag] Adding metadata{' (w/coverart) ' if add_coverart else ' '}for {basename(path)}")
-    coverart = metadata.pop('coverart')
-    audio = EasyID3(path)
-    audio.clear()
-    audio.update(metadata)
+    audio['TALB'] = TALB(text=metadata['album'])
+    audio['TIT2'] = TIT2(text=metadata['title'])
+    audio['TIT3'] = TIT3(text=metadata['version'])
+    audio['TCON'] = TCON(text=metadata['genre'])
+    audio['TENC'] = TENC(text=metadata['encodedby'])
+    audio['TPOS'] = TPOS(text=metadata['discnumber'])
     audio.save()
     
     if add_coverart:
-        add_id3_coverart(path, coverart, metadata)
+        add_id3_coverart(path, metadata['coverart'], metadata)
 
 if __name__ == "__main__":
     import sys

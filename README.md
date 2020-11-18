@@ -240,4 +240,4 @@ except FfmpegException:
 # TODO
 - code optimizations
 - improve code documentation
-- add track, artist and description metadata
+- add metadata for `DICS, TRACK NO., COMMENT, SCORE, COPYRIGHT, LANGUAGE, STUDIO, FEATUERD ARTISTS`
