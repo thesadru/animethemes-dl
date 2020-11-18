@@ -21,7 +21,7 @@ logger = logging.getLogger('animethemes-dl')
 
 COVERARTQUERY = """
 query Media($malid: Int) {
-  Media(idMal: $malid) {
+  Media(idMal: $malid type: ANIME) {
     idMal
     coverImage {
       extraLarge
