@@ -13,7 +13,7 @@
         "timeout": 15,
         "sort": "year",
         "coverart": {
-            "resolution":1,
+            "resolution":3,
             "folder":"anime_themes/coverarts"
         },
         "compression": {
