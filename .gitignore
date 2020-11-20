@@ -1,7 +1,7 @@
 # test directories
 anime_themes/
 animethemes.tar
-test*
+*test*
 # binaries
 __pycache__*
 ffmpeg.exe
