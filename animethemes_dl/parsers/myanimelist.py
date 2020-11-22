@@ -2,12 +2,14 @@
 Gets data from myanimelist.net.
 """
 import logging
+from datetime import datetime
+from typing import List, Tuple
 
 import requests
 
 from ..errors import MyanimelistException
-from ..models import RawAnimeList
 from .utils import Measure, add_url_kwargs
+from ..options import OPTIONS
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -51,35 +53,47 @@ def get_raw_mal(username: str, **kwargs) -> list:
             return out
         offset += 300
 
-def sort_mal(data: list) -> RawAnimeList:
+def filter_mal(data: list) -> List[Tuple[int,str]]:
     """
-    Sorts a MAL list and returns a version used for animethemes-dl.
+    Filters a MAL list and returns a list of malids and titles.
+    Removes all unwanted statuses, scores, priorities.
+    Also filters out unreleased anime.
     """
-    out = []
+    titles = []
     for entry in data:
+        status = entry['status']
+        score = entry['score']
         priority = parse_priority(entry['priority_string'])
-        out.append({
-            'status':entry['status'],
-            'score':entry['score'],
-            'priority':priority,
-            'notes':entry['tags'],
-            'malid':entry['anime_id'],
-            'title':entry['anime_title'],
-            'cover':entry['anime_image_path'], #inclusing the access token
-            'episodes':entry['anime_num_episodes']
-        })
+        start_date = entry['anime_start_date_string']
+        malid = entry['anime_id']
+        title = entry['anime_title']
+        
+        if not( # animelist options
+            status in OPTIONS['statuses'] and
+            score >= OPTIONS['animelist']['minscore'] and
+            priority >= OPTIONS['animelist']['minpriority']
+        ):
+            continue
+        
+        if ( # invalid date
+            start_date is None or # didn't start
+            datetime.strptime(start_date,'%y-%m-%d') > datetime.now() # didn't start yet
+        ):
+            continue
+        
+        titles.append((malid,title))
     
-    return out
+    return titles
 
-def get_mal(username: str, **kwargs) -> RawAnimeList:
+def get_mal(username: str, **kwargs) -> List[Tuple[int,str]]:
     """
     Gets a MAL list with a username.
     """
     measure = Measure()
     raw = get_raw_mal(username, **kwargs)
-    data = sort_mal(raw)
+    titles = filter_mal(raw)
     logger.info(f'[get] Got data from MAL in {measure()}s.')
-    return data
+    return titles
 
 if __name__ == "__main__":
     from pprint import pprint

@@ -2,28 +2,10 @@
 Options for animethemes_dl.
 """
 import logging
-from .models import Options,_TAGS_TUPLES,_NOTE_TUPLES,DEFAULT
+from .models import Options,DEFAULT
 
 logger = logging.getLogger('animethemes-dl')
 OPTIONS = Options(DEFAULT)
-
-def _generate_tagsnotes():
-    """
-    Generates required tags and banned notes,
-    """
-    # allowed if 
-    required_tags = []
-    banned_notes = []
-    for k,t in _TAGS_TUPLES:
-        if OPTIONS['filter'][k]:
-            required_tags.append(t)
-    
-    for k,t in _NOTE_TUPLES:
-        if not OPTIONS['filter'][k]:
-            banned_notes.append(t)
-    
-    return required_tags,banned_notes
-    
 
 def _update_dict(old: dict, new: dict):
     """

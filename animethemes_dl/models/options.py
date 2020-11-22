@@ -5,10 +5,6 @@ from os import PathLike
 from .literals import Score,Priority,Status
 from typing import Optional,List,TypedDict,Literal
 
-_TAGS_TUPLES = [('nocredits','NC'),('lyrics','Lyrics'),('bluray','BD'),
-                ('DVD','DVD'),('1080','1080'),('480','480')]
-_NOTE_TUPLES = [('spoilers','Spoilers'),('nsfw','NSFW')]
-
 class AnimeListOptions(TypedDict):
     username: str
     anilist: bool
@@ -16,13 +12,19 @@ class AnimeListOptions(TypedDict):
     minpriority: Priority
     minscore: Score
 
-FilterOptions = TypedDict(
-    'FilterOptions',
-    {
-        **{k:bool  for k,t in _NOTE_TUPLES},# type: ignore
-        **{k:bool for k,t in _TAGS_TUPLES}  # type: ignore
-    }
-)
+class EntryFilterOptions(TypedDict):
+    spoiler: Optional[bool]
+    nsfw: Optional[bool]
+
+class FilterOptions(TypedDict):
+    entry: EntryFilterOptions
+    resolution: int
+    nc: Optional[bool]
+    subbed: Optional[bool]
+    lyrics: Optional[bool]
+    uncen: Optional[bool]
+    source: Optional[str]
+    overlap: Optional[str]
 
 class CoverartOptions(TypedDict):
     resolution: Literal[0,1,2,3]
@@ -45,6 +47,7 @@ class DownloadOptions(TypedDict):
     sort: str
     coverart: CoverartOptions
     compression: CompressionOptions
+    force_videos: List[int]
 
 class Options(TypedDict):
     animelist: AnimeListOptions
@@ -65,24 +68,26 @@ DEFAULT = {
         'minscore':0
     },
     'filter': {
-        'spoilers': True,
-        'nsfw': True,
-        'nocredits': False,
-        'lyrics': False,
-        'bluray': False,
-        'DVD': False,
-        '1080': False,
-        '480': False
+        'entry': {
+            'spoiler': None,
+            'nsfw': None
+        },
+        'resolution':0,
+        'nc': None,
+        'subbed': None,
+        'lyrics': None,
+        'uncen': None,
+        'source': None,
+        'overlap': None
     },
     'download': {
-        'filename':'%(short_anime_title)s-%(type)s.%(filetype)s',
+        'filename':'%(anime_filename)s-%(theme_slug)s.%(video_filetype)s',
         'audio_folder':None,
         'video_folder':None,
         'no_redownload':False,
         'ascii':False,
         'timeout':5,
         'retries':3,
-        'sort':None,
         'coverart':{
             'resolution':0,
             'folder': None,
@@ -92,7 +97,8 @@ DEFAULT = {
             'base_name':'animethemes',
             'format':'tar',
             'base_dir':None
-        }
+        },
+        'force_videos': []
     },
     'statuses':[1,2],
     'quiet': False,
@@ -105,7 +111,7 @@ if __name__ == "__main__":
     import json
     json.dump(
         DEFAULT,
-        open('settings.json','w'),
+        open('hints/settings.json','w'),
         indent=4,
         allow_nan=True
     )

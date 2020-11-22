@@ -4,7 +4,7 @@ Does general repair for animethemes-dl. This is mostly for updating.
 import logging
 from os import PathLike, listdir, remove, makedirs
 from os.path import isfile,join,realpath
-from typing import Set
+from typing import Set, List
 
 from ..models import DownloadData
 from ..options import OPTIONS
@@ -12,7 +12,7 @@ from .audio import add_id3_metadata
 
 logger = logging.getLogger('animethemes-dl')
 
-def update_metadata(data: DownloadData, need_permission: bool=True) -> int:
+def update_metadata(data: List[DownloadData], need_permission: bool=True) -> int:
     """
     Updates metadata for all mp3's.
     Returns amount of tagged files.
@@ -21,15 +21,16 @@ def update_metadata(data: DownloadData, need_permission: bool=True) -> int:
     for anime in data:
         path = anime['audio_path']
         if path is not None and isfile(path):
-            totag.append((path,anime['metadata']))
+            logger.debug(path)
+            totag.append((path,anime['metadata'],anime['info']))
     
     if need_permission:
         answer = input(f'Tag {len(totag)} audio files? [y/n] ')
         if answer.lower() != 'y':
             return 0
     
-    for path,metadata in totag:
-        add_id3_metadata(path,metadata,OPTIONS['download']['coverart']['resolution'])
+    for path,metadata,info in totag:
+        add_id3_metadata(path,metadata,info['malid'])
     
     return len(totag)
 
@@ -42,6 +43,7 @@ def delete_unwanted(wanted: Set[PathLike], folder: PathLike, need_permission: bo
     for path in listdir(folder):
         path = realpath(join(folder,path))
         if path not in wanted:
+            logger.debug(path)
             todelete.append(path)
     
     if not todelete:
@@ -58,7 +60,7 @@ def delete_unwanted(wanted: Set[PathLike], folder: PathLike, need_permission: bo
     
     return len(todelete)
 
-def delete_all_unwanted(data: DownloadData, video: bool=True, audio: bool=True, need_permission: bool=True):
+def delete_all_unwanted(data: List[DownloadData], video: bool=True, audio: bool=True, need_permission: bool=True):
     """
     Deletes all unwanted files with DownloadData.
     Choose which type to delete.
@@ -90,7 +92,7 @@ def create_folders():
         except FileExistsError:
             pass
 
-def repair(data: DownloadData):
+def repair(data: List[DownloadData]):
     """
     Deletes unwanted files and updates metadata
     """
@@ -103,10 +105,14 @@ if __name__ == "__main__":
     from ..parsers import get_download_data
     from ..options import setOptions
     logger = logging.getLogger('animethemes-dl')
-    logging.basicConfig(level=logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
     setOptions({
         'download':{
-            'audio_folder':'test/anime_themes/audio',
+            'audio_folder': 'anime_themes/audio',
+            'coverart': {
+                'resolution': 3,
+                'folder': 'anime_themes/coverarts'
+            }
         }
     })
     repair(get_download_data('sadru'))

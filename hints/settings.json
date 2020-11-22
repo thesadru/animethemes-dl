@@ -7,24 +7,26 @@
         "minscore": 0
     },
     "filter": {
-        "spoilers": true,
-        "nsfw": true,
-        "nocredits": false,
-        "lyrics": false,
-        "bluray": false,
-        "DVD": false,
-        "1080": false,
-        "480": false
+        "entry": {
+            "spoiler": null,
+            "nsfw": null
+        },
+        "resolution": 0,
+        "nc": null,
+        "subbed": null,
+        "lyrics": null,
+        "uncen": null,
+        "source": null,
+        "overlap": null
     },
     "download": {
-        "filename": "%(short_anime_title)s-%(type)s.%(filetype)s",
+        "filename": "%(anime_filename)s-%(theme_slug)s.%(video_filetype)s",
         "audio_folder": null,
         "video_folder": null,
         "no_redownload": false,
         "ascii": false,
         "timeout": 5,
         "retries": 3,
-        "sort": null,
         "coverart": {
             "resolution": 0,
             "folder": null
@@ -34,9 +36,13 @@
             "base_name": "animethemes",
             "format": "tar",
             "base_dir": null
-        }
+        },
+        "force_videos": []
     },
-    "statuses": [1,2],
+    "statuses": [
+        1,
+        2
+    ],
     "quiet": false,
     "no_colors": false,
     "ffmpeg": "ffmpeg",

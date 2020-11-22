@@ -4,14 +4,14 @@ Download files with DownloadData.
 import logging
 from os import PathLike, makedirs, remove
 from os.path import isfile
-from typing import Tuple
+from typing import Tuple, List
 
 from pySmartDL import SmartDL, utils
 
 from animethemes_dl.options import OPTIONS, setOptions
 
 from .errors import BadThemesUrl
-from .models import ADownloadData, DownloadData, Options
+from .models import DownloadData, Options
 from .parsers import get_download_data
 from .tools import add_id3_metadata, compress_files, ffmpeg_convert, fix_faulty_url
 
@@ -34,7 +34,7 @@ def determine_needed(video: PathLike=None, audio: PathLike=None) -> Tuple[bool,b
     needvideo = (redownload or not exvideo) and (video or needaudio)
     return needvideo,needaudio
 
-def download_video(data: ADownloadData, use_temp: bool=False):
+def download_video(data: DownloadData, use_temp: bool=False):
     """
     Downloads a video with data.
     Returns destination
@@ -73,7 +73,7 @@ def download_video(data: ADownloadData, use_temp: bool=False):
     
     return dest
 
-def convert_audio(data: ADownloadData, video_path: PathLike=None):
+def convert_audio(data: DownloadData, video_path: PathLike=None):
     """
     Converts webm video into audio and adds metadata.
     Can force a different video path.
@@ -86,9 +86,9 @@ def convert_audio(data: ADownloadData, video_path: PathLike=None):
         if isfile(data['audio_path']):
             remove(data['audio_path'])
         quit(e)
-    add_id3_metadata(data['audio_path'],data['metadata'],OPTIONS['download']['coverart']['resolution'])
+    add_id3_metadata(data['audio_path'],data['metadata'],data['info']['malid'])
 
-def download_theme(data: ADownloadData, dlvideo: bool=True, dlaudio:bool=True):
+def download_theme(data: DownloadData, dlvideo: bool=True, dlaudio:bool=True):
     """
     Downloads a theme with theme `data`.
     Uses two destinations for audio and video folders.
@@ -108,7 +108,7 @@ def download_theme(data: ADownloadData, dlvideo: bool=True, dlaudio:bool=True):
         logger.debug(f'removing {video_path}')
         remove(video_path)
 
-def batch_download_themes(data: DownloadData):
+def batch_download_themes(data: List[DownloadData]):
     """
     Batch downloads all a list of `dl_data`.
     """
@@ -127,7 +127,7 @@ def batch_download_themes(data: DownloadData):
         if not (dlvideo or dlaudio):
             continue
         
-        logger.info(f"[download] \"{theme['metadata']['album']} | {theme['metadata']['title']}\" (#{index})")
+        logger.info(f"[download] \"{theme['metadata']['disc']} | {theme['metadata']['title']}\" (#{index})")
         
         for retry in range(1,OPTIONS['download']['retries']):
             try:
@@ -160,7 +160,6 @@ def batch_download(options: dict=Options):
         compress_files(**OPTIONS['download']['compression'])
 
 if __name__ == '__main__':
-    from .models.animelist import SingleAnimeList
     logging.basicConfig(
         format='%(message)s'
     )
@@ -172,16 +171,19 @@ if __name__ == '__main__':
             'minpriority':2
         },
         'filter':{
-            'spoilers':False
+            'entry': {
+                'spoiler':False
+            }
         },
         'download':{
-            'audio_folder':'test/anime_themes/audio',
-            'video_folder':'test/anime_themes/video',
+            'audio_folder':'anime_themes/audio',
+            'video_folder':'anime_themes/video',
             'no_redownload':True,
-            'add_coverart':True,
-            'coverart_folder':'test/anime_themes/coverarts',
-            'timeout':15,
-            'sort':'year'
+            'coverart': {
+                'resolution': 3,
+                'folder': 'anime_themes/coverarts'
+            },
+            'timeout':15
         },
         # 'ffmpeg':'./ffmpeg.exe'
     })

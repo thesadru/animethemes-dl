@@ -2,12 +2,14 @@
 Gets data from anilist.co.
 """
 import logging
+from datetime import datetime
+from typing import List, Tuple
 
 import requests
 
 from ..errors import AnilistException
-from ..models import RawAnimeList
 from .utils import Measure
+from ..options import OPTIONS
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -21,23 +23,21 @@ query userList($user: String) {
         status
         score
         priority
-        repeat
-        notes
         media {
           idMal
           title {
             romaji
           }
-          episodes
-          coverImage {
-            medium
+          startDate {
+            year
+            month
+            day
           }
         }
       }
     }
   }
 }
-
 """
 
 def get_raw_anilist(username: str, query: str=ALQUERY, **vars) -> dict:
@@ -64,13 +64,14 @@ def get_raw_anilist(username: str, query: str=ALQUERY, **vars) -> dict:
         logger.debug(f'Got {sum(len(i) for i in lists)} enries from anilist.')
         return lists
 
-def sort_anilist(data: dict) -> RawAnimeList:
+def sort_anilist(data: dict) -> List[Tuple[int,str]]:
     """
-    Sorts an anilist list and returns a version used for animethemes-dl.
+    Filters an anilist list and returns a list of titles.
+    Removes all unwanted statuses, scores, priorities.
+    Also filters out unreleased anime.
     """
-    out = []
+    titles = []
     for i in data:
-        status = i['status']
         status = {
             'CURRENT':1,
             'COMPLETED':2,
@@ -78,24 +79,32 @@ def sort_anilist(data: dict) -> RawAnimeList:
             'DROPPED':4,
             'PLANNING':6,
             'REPEATING':1, # rewatching
-        }[status]
-        entries = i['entries']
-        for entry in entries:
+        }[i['status']]
+        for entry in i['entries']:
             media = entry.pop('media')
-            out.append({
-                'status':status,
-                'score':entry['score'],
-                'priority':entry['priority'],
-                'notes':entry['notes'] or '',
-                'malid':media['idMal'],
-                'title':media['title']['romaji'],
-                'cover':media['coverImage']['medium'],
-                'episodes':media['episodes']
-            })
+            score = entry['score']
+            priority = entry['priority']
+            start_date = media['startDate']
+            malid = media['idMal']
+            title = media['title']['romaji']
+            
+            if not( # animelist options
+                status in OPTIONS['statuses'] and
+                score >= OPTIONS['animelist']['minscore'] and
+                priority >= OPTIONS['animelist']['minpriority']
+            ):
+                continue
+            
+            if ( # invalid date
+                None in start_date['year'].values() or # didn't start
+                datetime(**start_date) > datetime.now() # didn't start yet
+            ):
+                continue
+            titles.append((malid,title))
     
-    return out
+    return titles
 
-def get_anilist(username: str, **vars) -> RawAnimeList:
+def get_anilist(username: str, **vars) -> List[Tuple[int,str]]:
     """
     Gets an anilist list with a username.
     """

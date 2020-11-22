@@ -3,25 +3,29 @@
         "username": "sadru"
     },
     "filter": {
-        "spoilers": false
+        "overlap": "Over"
     },
     "download": {
-        "filename": "%(short_anime_title)s-%(type)s.%(filetype)s",
-        "audio_folder": "anime_themes/audio",
-        "video_folder": "anime_themes/video",
+        "filename": "%(anime_filename)s-%(theme_slug)s.%(video_filetype)s",
+        "audio_folder": "C:/Users/Lucka/Music/animethemes/audio",
+        "video_folder": "C:/Users/Lucka/Music/animethemes/video",
         "no_redownload": true,
         "timeout": 15,
-        "sort": "year",
         "coverart": {
-            "resolution":3,
-            "folder":"anime_themes/coverarts"
+            "resolution": 3,
+            "folder": "C:/Users/Lucka/Music/animethemes/coverarts"
         },
         "compression": {
-            "root_dir": "anime_themes",
-            "base_name":"animethemes",
-            "format":"tar",
-            "base_dir":"audio"
-        }
+            "root_dir": "C:/Users/Lucka/Music/animethemes",
+            "base_name": "C:/Users/Lucka/Music/animethemes/animethemes",
+            "format": "tar",
+            "base_dir": "audio"
+        },
+        "force_videos": [
+            6940,6941,
+            10275,
+            8952,8948,8949,8950,8951
+        ]
     },
     "statuses": [1,2],
     "ffmpeg": "ffmpeg"

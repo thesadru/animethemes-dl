@@ -4,12 +4,12 @@ Random tools for animethemes-dl.
 import logging
 
 from ..errors import BadThemesUrl
-from ..models import ADownloadData
+from ..models import DownloadData
 from .colors import ColorFormatter
 
 logger = logging.getLogger('animethemes-dl')
 
-def fix_faulty_url(data: ADownloadData):
+def fix_faulty_url(data: DownloadData):
     """
     Removes the tags ("...-OP1-NCBD.webm" -> "...,OP1,NCBD.webm" -> "...-OP1.webm")
     Used when themes.moe returns a stupid url.
