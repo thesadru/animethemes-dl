@@ -155,6 +155,7 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
         # fix some problems
         video['link'] = video['link'].replace('animethemes.dev','animethemes.moe')
         entry['version'] = entry['version'] if entry['version'] else 1
+        series = [series['name'] for series in anime['series']]
         # get video path
         videopath,audiopath = generate_path(anime,theme,entry,video)
         yield {
@@ -163,11 +164,11 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
             'audio_path': audiopath,
             'metadata': {
                 # anime
-                'album': [series['name'] for series in anime['series']] or [anime['name']],
-                'disc': anime['name'],
+                'series': series[0] if len(series)==1 else anime['name'], # mashups are it's own thing (ie isekai quarter)
+                'album': anime['name'], # discs should be numbered,
                 'year': anime['year'],
                 'cover': anime['cover'],
-                'track': tracknumber+1,
+                'track': f"{tracknumber+1}/{anime['themes']}", # an ID3 "track/total" syntax
                 # theme
                 'title': theme['song']['title'],
                 'artists': [artist['name'] for artist in theme['song']['artists']],
@@ -179,7 +180,8 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
                 'resolution': video['resolution'],
                 # const
                 'genre': [145], # anime
-                'encodedby': 'animethemes.moe'
+                'encodedby': 'animethemes.moe',
+                'cgroup': 'anime theme' # content group
             },
             'info': {
                 'malid':[r['external_id'] for r in anime['resources'] if r['site']=='MyAnimeList'][0]

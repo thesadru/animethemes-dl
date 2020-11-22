@@ -8,11 +8,12 @@ from .literals import UrlLike
 
 
 class Metadata(TypedDict):
+    series: str
     album: str
     disc: str
     year: int
     cover: UrlLike
-    track: int
+    track: str # {int}/{int}
     title: str
     artists: List[str]
     themetype: str
@@ -21,6 +22,7 @@ class Metadata(TypedDict):
     resolution: int
     genre: List[int]
     encodedby: str
+    cgroup: str
 
 class DownloadInfo(TypedDict):
     malid: int
