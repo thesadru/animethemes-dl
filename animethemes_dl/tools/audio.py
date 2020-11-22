@@ -98,7 +98,7 @@ def get_coverart(malid: int) -> Tuple[bytes,str,str]:
         if coverart_folder:
             open(path,'wb').write(data)
     
-    logger.debug(f'Added coverart of size {len(data)} to {malid}.')
+    logger.debug(f'Added coverart {malid} ({len(data)}B).')
     
     mimetype = guess_type(path)
     desc = f"{malid}, resolution {resolution}/3"
@@ -114,17 +114,19 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, malid: int=None):
     logger.info(f"[tag] Adding metadata{' (w/coverart) 'if OPTIONS['download']['coverart']['folder'] else' '}for {basename(path)}")
     audio = ID3(path)
     audio.clear()
-    audio.add(TALB(text=metadata['disc'])) # since 'album' is the series, I have to use disc, until I implement the disc itself
-    # audio.add(TPOS(text=metadata['disc'])) # should be integer, does weird shit otherwise, put off for now
+    audio.add(TALB(text=metadata['album']))
+    # audio.add(TPOS(text=metadata['disc'])) # I want the series, but audio players want an integer. put off for now
     audio.add(TDRC(text=[ ID3TimeStamp(str(metadata['year'])) ]))
-    # audio.add(TRCK(text=str(metadata['track']))) no track since there's no disc
+    audio.add(TRCK(text=str(metadata['track']))) # useless since there's no discs, I'll keep anyways.
     audio.add(TIT2(text=metadata['title']))
-    # audio.add(TPE1(text=metadata['artists'])) # not artist, but singer. ID3 doesn't have a tag (I think)
+    # audio.add(TPE2(text=metadata['artists'])) # ID3 is not made for singers, doesn't have a tag (TPE1 and TPE2 are wrong)
+    audio.add(TXXX(text=metadata['series'],desc='series'))
     audio.add(TXXX(text=metadata['themetype'],desc='themetype'))
     audio.add(TXXX(text=str(metadata['version']),desc='version'))
     audio.add(TXXX(text=metadata['notes'],desc='notes'))
     audio.add(TCON(text=metadata['genre']))
     audio.add(TENC(text=metadata['encodedby']))
+    audio.add(TIT1(text=metadata['cgroup']))
     if malid is not None and OPTIONS['download']['coverart']['folder']:
         coverart,desc,mimetype = get_coverart(malid)
         audio.add(APIC(encoding=3,mime=mimetype,desc=desc,type=3,data=coverart))
