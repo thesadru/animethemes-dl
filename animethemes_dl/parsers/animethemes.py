@@ -1,139 +1,87 @@
 """
-Gets data from themes.moe using their API.
+Parses the animethemes api, getting data by title.
+Uses ThreadPoolExecutor.map to get data faster on slower connections.
 """
 import logging
+from concurrent.futures import ThreadPoolExecutor
+from typing import Dict, Iterable, List, Optional, Tuple
 
-import requests
+from pySmartDL.utils import get_random_useragent
+from requests import Session
 
-from ..models import RawAnimeThemes
+from ..models.animethemes import AnimeThemeAnime
 from .utils import Measure
+
+URL = "https://animethemes.dev/api/search?q={}"
+MAXWORKERS = 5
+session = Session()
+session.headers = {
+    "User-Agent":get_random_useragent()
+}
 
 logger = logging.getLogger('animethemes-dl')
 
-THEMESMALURL = 'https://themes.moe/api/mal/{user}'
-THEMESALURL  = 'https://themes.moe/api/al/{user}'
-POSSIBLETAGS = [
-    'NC',
-    'Subbed',
-    'Lyrics',
-    'Cen',
-    'Uncen',
-    '60FPS',
-    'Trans',
-    'BD',
-    '420',
-    '720',
-    '1080'
-]
-POSSIBLENOTES = [
-    'Spoiler',
-    'NSFW'
-]
+def api_search(title: str) -> Dict[str,List[AnimeThemeAnime]]:
+    """
+    Requests a search from the api.
+    """
+    return session.get(URL.format(title)).json()
 
-def get_tags(s: str, possible: list=POSSIBLETAGS) -> list:
+def make_anime_request(title: str) -> List[AnimeThemeAnime]:
     """
-    Gets tags from a url
+    Requests an anime search with a title.
+    Strips out unexpected characters.
     """
-    tags = []
-    for tag in possible:
-        if tag in s:
-            tags.append(tag)
-    return tags
+    title = title.split('(')[0] # remove (TV) and (<year>)
+    anime = api_search(title)['anime']
+    if anime: return anime
+    title = ''.join(i for i in title if not i.isdigit()) # remove numbers
+    return api_search(title)['anime']
 
-def parse_theme_type(themetype: str) -> tuple:
+def pick_best_anime(malid,title, animes: List[AnimeThemeAnime]) -> Optional[AnimeThemeAnime]:
     """
-    Parser a themetype into a `(type, short type, version)` tuple.
+    Goes through animes returned by api and returns the correct one.
     """
-    themetype = themetype.split()
-    if len(themetype) == 1:
-        themetype = themetype[0]
-        version = 1
-    else:
-        themetype,version = themetype
-        version = int(version[1:])
-    
-    shortype = themetype[:2]
-    return themetype,shortype,version
-    
+    for theme in animes:
+        for resource in theme['resources']:
+            if resource["site"] == "MyAnimeList" and resource['external_id'] == malid:
+                return theme
+    return None
 
-def get_raw_animethemes(username: str, anilist: bool = False) -> list:
+def request_anime(animentry: Tuple[int,str]) -> Tuple[Tuple[int,str],Optional[AnimeThemeAnime]]:
     """
-    Gets themes from r/animethemes using the themes.moe api.
+    Makes a requests to the api with an anime entry.
+    Returns anime,themes
     """
-    if anilist:
-        url = THEMESALURL.format(user=username)
-    else:
-        url = THEMESMALURL.format(user=username)
-    
-    r = requests.get(url)
-    if r.status_code == 200:
-        data = r.json()
-        logger.debug(f'Got {len(data)} entries from themes.moe.')
-        return data
-    else:
-        r.raise_for_status()
+    malid,title = animentry
+    animes = make_anime_request(title)
+    anime = pick_best_anime(malid,title,animes)
+    return animentry,anime
 
-def sort_animethemes(data: list) -> RawAnimeThemes:
+def run_executor(animelist: List[Tuple[int,str]], show_progress='') -> Iterable[AnimeThemeAnime]:
     """
-    Sorts themes and returns a version used for animethemes-dl.
-    """
-    out = []
-    url = ''
-    
-    for entry in data:
-        themes = {}
-        for theme in entry['themes']:
-            themetype,shortype,version = parse_theme_type(theme['themeType'])
-            mirror = theme['mirror']
-            url = mirror['mirrorURL']
-            tags = get_tags(url)
-            notes = get_tags(mirror['notes'],POSSIBLENOTES)
-            
-            if themetype not in themes:
-                themes[themetype] = {
-                    'title':theme['themeName'],
-                    'type': themetype,
-                    'shortype':shortype,
-                    'mirrors':[]
-                }
-            
-            themes[themetype]['mirrors'].append({
-                'url': url,
-                'version':version,
-                'tags': tags,
-                'notes': notes,
-                'priority': mirror['priority'],
-            })
-        sorted_themes = []
-        for theme in themes.values():
-            theme['mirrors'].sort(key=lambda mirror: mirror['priority'])
-            sorted_themes.append(theme)
-        
-        short_title = url.split('/')[-1].split('-')[0]
-        
-        out.append({
-            'themes': sorted_themes,
-            'animelist':{
-                'malid':entry['malID'],
-                'status':entry['watchStatus'],
-                'short_title':short_title,
-                'year':entry['year'],
-                'season': entry['season'],
-            }
-        })
-    
-    return out
-
-def get_animethemes(username: str, anilist: bool = False) -> RawAnimeThemes:
-    """
-    Gets themes with a username.
+    Goes thorugh anime entries and yields their api returns.
     """
     measure = Measure()
-    raw = get_raw_animethemes(username, anilist)
-    data = sort_animethemes(raw)
-    logger.info(f'[get] Got data from themes.moe in {measure()}s.')
-    return data
+    with ThreadPoolExecutor(MAXWORKERS) as executor:
+        for i,(animentry,anime) in enumerate(executor.map(request_anime,animelist),1):
+            if show_progress:
+                print(show_progress%(i,len(animelist)),end='\r')
+            if anime:
+                yield anime
+    
+    if show_progress: logger.info(f'[get] Got data from animethemes in {measure()}s.')
+
+def fetch_animethemes(animelist: List[Tuple[int,str]], show_progress: str='') -> List[AnimeThemeAnime]:
+    """
+    Gets the anime entries from animethemes.
+    Can show progress with `show_progress` string. Formats with % current,total.
+    """
+    return list(run_executor(animelist,show_progress))
 
 if __name__ == "__main__":
-    from pprint import pprint
-    pprint(get_animethemes('sadru'))
+    import json
+    from .myanimelist import get_mal
+    data = fetch_animethemes(get_mal('sadru'), "[^] %s/%s")
+    with open('test.json','w') as file:
+        json.dump(data,file,indent=4)

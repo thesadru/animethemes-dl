@@ -88,22 +88,41 @@ animelist_filters.add_argument(
 
 tag_filters = parser.add_argument_group('tag filters')
 tag_filters.add_argument(
-    '--no-spoilers',
-    action='store_true',
-    help="Does not download any spoilers."
-)
-tag_filters.add_argument(
-    '--no-nsfw','--sfw',
-    action='store_true',
-    help="Does not download any NSFW themes."
-)
-tag_filters.add_argument(
-    '--required-tags','--tags',
+    '--required-tags','--rtags',
     default=[],
     metavar="TAGS",
     nargs='+',
     help="Required tags for themes, check README for possible tags."
 )
+tag_filters.add_argument(
+    '--banned-tags','--btags',
+    default=[],
+    metavar="TAGS",
+    nargs='+',
+    help="Banned tags for themes, check README for possible tags."
+)
+tag_filters.add_argument(
+    '--min-resolution','--res',
+    default=0,
+    type=int,
+    metavar="INT",
+    help="Minimum resolution of video."
+)
+tag_filters.add_argument(
+    '--source',
+    default=None,
+    choices=('','DVD','BD'),
+    metavar="TAG",
+    help="The required source. Either DVD or BD."
+)
+tag_filters.add_argument(
+    '--banned-over','--bover',
+    default=None,
+    choices=('Over','Transition','None'),
+    metavar="TAG",
+    help="Do not give themes with given overlap. Either Over,Transition or None."
+)
+
 
 # =============================================================================
 download = parser.add_argument_group('download')
@@ -135,11 +154,6 @@ download.add_argument(
     help="Strips all unicode characters from filenames."
 )
 download.add_argument(
-    '--sort',
-    metavar="STR",
-    help="Sorts themes by animelist args, check README for possible args."
-)
-download.add_argument(
     '--coverart',
     type=int,
     default=0,
@@ -167,6 +181,13 @@ download.add_argument(
     default=3,
     metavar="INT",
     help="Max retries"
+)
+download.add_argument(
+    '--force-videos','--fvideos',
+    default=[],
+    type=int,
+    nargs='+',
+    help="Force video ids to be downloaded. It will not be included in filters."
 )
 
 # =============================================================================
@@ -254,6 +275,19 @@ printing.add_argument(
     help="Does not print in color."
 )
 
+def get_filters(args):
+    tags = ('spoiler','nsfw','nc','subbed','lyrics','uncen')
+    filters = {}
+    for f in tags:
+        r,b = f in args.required_tags,f in args.banned_tags
+        if r==b:
+            filters[f] = None
+        elif r:
+            filters[f] = True
+        elif b:
+            filters[f] = False
+    
+    return filters
 
 def load_settings(settings):
     if settings is None:
@@ -262,6 +296,7 @@ def load_settings(settings):
         return json.load(file)
 
 def parse_args(args):
+    filters = get_filters(args)
     options = _update_dict(OPTIONS,
     {
         "animelist": {
@@ -272,9 +307,17 @@ def parse_args(args):
             "minscore": args.minscore
         },
         "filter": {
-            "spoilers": not args.no_spoilers,
-            "nsfw": not args.no_nsfw,
-            **{k:True for k in args.required_tags}
+            'entry': {
+                'spoiler': filters['spoiler'],
+                'nsfw': filters['nsfw'],
+            },
+            'resolution': args.min_resolution,
+            'nc': filters['nc'],
+            'subbed': filters['subbed'],
+            'lyrics': filters['lyrics'],
+            'uncen': filters['uncen'],
+            'source': args.source,
+            'overlap': args.banned_over,
         },
         "download": {
             **({"filename": args.filename} if args.filename else {}),
@@ -284,7 +327,6 @@ def parse_args(args):
             "ascii": args.ascii,
             "timeout": args.timeout,
             "retries": args.retries,
-            "sort": args.sort,
             "coverart": {
                 "resolution":args.coverart,
                 "folder":args.coverart_folder
@@ -294,7 +336,8 @@ def parse_args(args):
                 "base_name":args.compress_name,
                 "format":args.compress_format,
                 "base_dir":args.compress_base
-            }
+            },
+            "force_videos": args.force_videos
         },
         "statuses": args.statuses,
         "quiet": args.loglevel>logging.CRITICAL,

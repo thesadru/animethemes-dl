@@ -6,11 +6,10 @@ import logging
 from mimetypes import guess_extension, guess_type
 from os import PathLike, system, listdir
 from os.path import basename, isfile, join, splitext
-from typing import Tuple
+from typing import Optional, Tuple
 
 import requests
-from mutagen.easyid3 import EasyID3
-from mutagen.id3 import ID3
+from mutagen.id3 import ID3, ID3TimeStamp
 from mutagen.id3._frames import *
 
 from ..errors import FfmpegException
@@ -47,9 +46,9 @@ def ffmpeg_convert(old: str, new: str):
     system(OPTIONS['ffmpeg']+ffmpeg_command)
     if not isfile(new):
         logger.error(f'ffmpeg failed to convert "{old}" to "{new}".')
-        raise FfmpegException('Ffmpeg failed to convert, check if in path.')
+        raise FfmpegException('Ffmpeg failed to convert.')
 
-def fetch_coverart(malid: int, size:int, query:str=COVERARTQUERY, **variables) -> str:
+def fetch_coverart(malid: int, size:int, query: str=COVERARTQUERY, **variables) -> str:
     """
     Returns a coverart url of 1-3 resolution.
     """
@@ -64,35 +63,40 @@ def fetch_coverart(malid: int, size:int, query:str=COVERARTQUERY, **variables) -
     
     covers = data['data']['Media']['coverImage']
     return covers[{
+        0:'medium', # prevents some stupid bugs
         1:'medium',
         2:'large',
         3:'extraLarge'
     }[size]]
 
-def get_coverart(url: UrlLike, metadata: Metadata=None) -> Tuple[bytes,str,str]:
+def find_file(s: str, directory: str='.') -> Optional[PathLike]:
     """
-    Gets coverart for an mp3 file, it's description and it's mime type.
+    Goes through all files in directory and returns one that contains `s`.
+    """
+    for path in listdir(directory):
+        if s in path:
+            return join(directory,path)
+
+def get_coverart(malid: int) -> Tuple[bytes,str,str]:
+    """
+    Gets coverart, description and mime type for an mp3 file.
     """
     coverart_folder = OPTIONS['download']['coverart']['folder']
     resolution = OPTIONS['download']['coverart']['resolution']
-    malid = metadata['discnumber']
     
-    path = None; data = None
-    
+    data=None;path=None # my pylance was complaining...
     if coverart_folder:
-        for path in listdir(coverart_folder):
-            if malid in path:
-                path = join(coverart_folder,path)
-                data = open(path,'rb').read()
+        path = find_file(str(malid),coverart_folder)
+        if path:
+            data = open(path,'rb').read()
     
     if data is None:
-        if resolution > 1:
-            logger.debug(f'Fetching coverart for {malid} ({resolution})')
-            url = fetch_coverart(malid,resolution)
+        logger.debug(f'Fetching coverart for {malid} ({resolution})')
+        url = fetch_coverart(malid,resolution)
         data = requests.get(url).content
-        extension = splitext(url.split('?s=')[0])[1]
-        path = join(coverart_folder,str(malid)+extension)
-        open(path,'wb').write(data)
+        path = join(coverart_folder,str(malid)+splitext(url)[1])
+        if coverart_folder:
+            open(path,'wb').write(data)
     
     logger.debug(f'Added coverart of size {len(data)} to {malid}.')
     
@@ -101,43 +105,31 @@ def get_coverart(url: UrlLike, metadata: Metadata=None) -> Tuple[bytes,str,str]:
     
     return data,desc,mimetype
 
-def add_id3_coverart(filename: PathLike, url: UrlLike, metadata: Metadata=None, apictype: int=3):
-    """
-    Adds coverart to an mp3 file.
-    You can set exact apictype, front cover by default.
-    Can save to a file with `coverart_filename`.
-    """
-    audio = ID3(filename)
-    coverart,desc,mimetype = get_coverart(url,metadata)
-    audio.add(
-        APIC(
-            encoding=3,
-            mime=mimetype,
-            desc=desc,
-            type=apictype,
-            data=coverart
-        )
-    )
-    audio.save()
-
-def add_id3_metadata(path: PathLike, metadata: Metadata, add_coverart: bool=False):
+def add_id3_metadata(path: PathLike, metadata: Metadata, malid: int=None):
     """
     Adds metadata to an MP3 file using mutagens `EasyID3`.
     Uses ID3 v2.4.
+    If no malid is given, coverart cannot be added.
     """
-    logger.info(f"[tag] Adding metadata{' (w/coverart) ' if add_coverart else ' '}for {basename(path)}")
+    logger.info(f"[tag] Adding metadata{' (w/coverart) 'if OPTIONS['download']['coverart']['folder'] else' '}for {basename(path)}")
     audio = ID3(path)
     audio.clear()
-    audio.add(TALB(text=metadata['album']))
+    audio.add(TALB(text=metadata['disc'])) # since 'album' is the series, I have to use disc, until I implement the disc itself
+    # audio.add(TPOS(text=metadata['disc'])) # should be integer, does weird shit otherwise, put off for now
+    audio.add(TDRC(text=[ ID3TimeStamp(str(metadata['year'])) ]))
+    # audio.add(TRCK(text=str(metadata['track']))) no track since there's no disc
     audio.add(TIT2(text=metadata['title']))
-    audio.add(TIT3(text=metadata['version']))
+    # audio.add(TPE1(text=metadata['artists'])) # not artist, but singer. ID3 doesn't have a tag (I think)
+    audio.add(TXXX(text=metadata['themetype'],desc='themetype'))
+    audio.add(TXXX(text=str(metadata['version']),desc='version'))
+    audio.add(TXXX(text=metadata['notes'],desc='notes'))
     audio.add(TCON(text=metadata['genre']))
     audio.add(TENC(text=metadata['encodedby']))
-    audio.add(TPOS(text=metadata['discnumber']))
-    audio.save()
+    if malid is not None and OPTIONS['download']['coverart']['folder']:
+        coverart,desc,mimetype = get_coverart(malid)
+        audio.add(APIC(encoding=3,mime=mimetype,desc=desc,type=3,data=coverart))
     
-    if add_coverart:
-        add_id3_coverart(path, metadata['coverart'], metadata)
+    audio.save()
 
 if __name__ == "__main__":
     import sys

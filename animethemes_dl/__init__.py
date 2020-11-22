@@ -4,7 +4,6 @@ Downloads anime themes from animethemes.moe. Supports Batch download and animeli
 from .downloader import *
 from .errors import *
 from .options import DEFAULT, OPTIONS, setOptions
-from .parsers import *
 
 from .tools import init_logger
 init_logger()
