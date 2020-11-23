@@ -72,23 +72,17 @@ def strip_illegal_chars(filename: str) -> str:
     else:
         return ''.join(i for i in filename if i not in FILENAME_BANNED)
 
-def generate_path(
-    anime: AnimeThemeAnime, theme: AnimeThemeTheme, 
-    entry: AnimeThemeEntry, video: AnimeThemeVideo) -> (
-        Tuple[Optional[PathLike],Optional[PathLike]]):
+def get_formatter(**kwargs) -> (
+        Dict[str,str]):
     """
-    Generates a path with animethemes api returns.
-    Returns `(videopath|None,audiopath|None)`
+    Generates a formatter dict used for formatting filenames.
+    Takes in kwargs of Dict[str,Any].
+    Does not keep lists, dicts and bools.
+    Automatically filters out` .endswith('ated_at')` for animethemes-dl.
+    Also adds `{video_filetype:webm,anime_filename:...}`.
     """
-    formatter_attrs = (
-        ('anime', anime),
-        ('theme', theme),
-        ('entry', entry),
-        ('video', video),
-        ('song', theme['song'])
-    )
     formatter = {}
-    for t,d in formatter_attrs:
+    for t,d in kwargs.items():
         for k,v in d.items():
             if (not isinstance(v,(list,dict,bool)) and 
                 not k.endswith('ated_at')
@@ -98,6 +92,18 @@ def generate_path(
     formatter['video_filetype'] = 'webm'
     formatter['anime_filename'] = formatter['video_filename'].split('-')[0]
     
+    return formatter
+
+def generate_path(
+    anime: AnimeThemeAnime, theme: AnimeThemeTheme, 
+    entry: AnimeThemeEntry, video: AnimeThemeVideo) -> (
+        Tuple[Optional[PathLike],Optional[PathLike]]):
+    """
+    Generates a path with animethemes api returns.
+    Returns `(videopath|None,audiopath|None)`
+    """
+    formatter = get_formatter(
+        anime=anime,theme=theme,entry=entry,video=video,song=theme['song'])
     filename = OPTIONS['download']['filename'] % formatter
     filename = strip_illegal_chars(filename)
     
@@ -215,5 +221,23 @@ def get_download_data(username: str, anilist: bool = False, animelist_args={}) -
     return data
 
 if __name__ == "__main__":
+    from .animethemes import fetch_animethemes
     from pprint import pprint
-    pprint(get_download_data('sadru'))
+    import sys
+    import json
+    if len(sys.argv)==1:
+        pprint(get_download_data('sadru'))
+    else:
+        with open('hints/formatter.json','w') as file:
+            data = fetch_animethemes([(31240,'Re:Zero')])[0]
+            json.dump(
+                get_formatter(
+                    anime=data,
+                    theme=data['themes'][0],
+                    entry=data['themes'][0]['entries'][0],
+                    video=data['themes'][0]['entries'][0]['videos'][0],
+                    song= data['themes'][0]['song']
+                ),
+                file,
+                indent=4
+            )

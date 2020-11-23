@@ -11,14 +11,6 @@ if len(sys.argv) < 2:
 logger = logging.getLogger('animethemes-dl')
 logger.setLevel(logging.DEBUG)
 
-options = {
-    'filter':{
-        '1080':True,
-        'spoilers':False
-    }
-}
-setOptions(options)
-
 if sys.argv[1] == 'get':
     data = get_animethemes(sys.argv[2],len(sys.argv)>3)
 elif sys.argv[1] == 'dl':
