@@ -108,7 +108,7 @@ For example `%(anime_filename)s-%(theme_slug)s.%(video_filetype)s`.
 
 > Windows and Linux banned characters will be removed by default, to remove those and also unicode characters use `--ascii`
 
-You can disable redownloading with `-r`. This is highly recommended.
+You can disable redownloading with `-r`. This is highly recommended. If you have downloaded video you can `--update` theme, this will check file validity by looking at the filesize. It will also update audio files if the video is downloaded.
 
 You can add a coverart to audio files with `--coverart`, `--coverart` takes in a resolution, if set, image will be fetched from anilist.co, with high resolutions it's recommended to save them in `--coverart-folder`.
 

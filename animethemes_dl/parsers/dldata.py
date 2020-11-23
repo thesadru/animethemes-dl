@@ -185,6 +185,7 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
                 # video
                 'resolution': video['resolution'],
                 'videoid': video['id'],
+                'filesize': video['size'],
                 # const
                 'genre': [145], # anime
                 'encodedby': 'animethemes.moe',

@@ -2,13 +2,14 @@
 Does general repair for animethemes-dl. This is mostly for updating.
 """
 import logging
-from os import PathLike, listdir, remove, makedirs
-from os.path import isfile,join,realpath
-from typing import Set, List
+from os import PathLike, listdir, makedirs, remove
+from os.path import isfile, join, realpath
+from typing import List, Set
 
 from ..models import DownloadData
 from ..options import OPTIONS
 from .audio import add_id3_metadata
+from .compression import compress_files
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -92,6 +93,11 @@ def create_folders():
         except FileExistsError:
             pass
 
+def compress_directory(directory: PathLike):
+        answer = input(f'Compress {directory}? [y/n] ')
+        if answer.lower() == 'y':
+            compress_files(**OPTIONS['download']['compression'])
+
 def repair(data: List[DownloadData]):
     """
     Deletes unwanted files and updates metadata
@@ -99,11 +105,14 @@ def repair(data: List[DownloadData]):
     create_folders()
     deleted = delete_all_unwanted(data,not OPTIONS['ignore_prompts'])
     tagged = update_metadata(data,not OPTIONS['ignore_prompts'])
-    logger.info(f'[repair] deleted {deleted} files and retagged {tagged} audio files.')
+    compress_dir = OPTIONS['download']['compression']['root_dir']
+    if compress_dir:
+        compress_directory(compress_dir)
+    logger.info(f"[repair] deleted {deleted} files, retagged {tagged} audio files{', compressed dir.' if compress_dir else '.'}")
 
 if __name__ == "__main__":
-    from ..parsers import get_download_data
     from ..options import setOptions
+    from ..parsers import get_download_data
     logger = logging.getLogger('animethemes-dl')
     logger.setLevel(logging.DEBUG)
     setOptions({

@@ -41,6 +41,7 @@ class DownloadOptions(TypedDict):
     audio_folder: Optional[PathLike]
     video_folder: Optional[PathLike]
     no_redownload: bool
+    update: bool
     ascii: bool
     timeout: int
     retries: int
@@ -85,6 +86,7 @@ DEFAULT = {
         'audio_folder':None,
         'video_folder':None,
         'no_redownload':False,
+        'update':False,
         'ascii':False,
         'timeout':5,
         'retries':3,
