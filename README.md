@@ -43,17 +43,32 @@ There are filters for minimum score and priority.
 `--minpriority` is the minimum priority. For mal, use `Low=0,Medium=1,High=2`
 
 ### tag filters
-You can filter out spoilers (with `--no-spoilers`) and nsfw (with `--no-nsfw`).
-You can force tags with `--required-tags`, the possible tags are:
-| Tag       | Meaning                                    | True Tag |
-| :-------: | :----------------------------------------- | -------- |
-| nocredits | No captions/no credits                     | NC       |
-| lyrics    | Video includes English lyrics as subtitles | Lyrics   |
-| bluray    | Video is sourced from a Blu-ray disc       | BD       |
-| DVD       | Video is sourced from a DVD                | DVD      |
-| 1080      | 1080p                                      | 1080     |
-| 480       | 480p                                       | 480      |
+You can set `--banned-tags` or `--required-tags`. These will take multiple tags, possible tags are:
+| Tag     | Meaning                                       |
+| :-----: | :-------------------------------------------- |
+| spoiler | Video contains spoilers.                      |
+| nsfw    | Video is NSFW.                                |
+| nc      | No captions/no credits.                       |
+| subbed  | Video includes English subtitles of dialogue. |
+| lyrics  | Video includes English lyrics as subtitles.   |
+| uncen   | Video does not have censorship.               |
 
+You can set a `--min-resolution`, they show up in `420,720,1080`.
+
+You can set the required `--source`, possible sources are:
+| Source | Meaning                               |
+| :----: | :------------------------------------ |
+| BD     | Video is sourced from a Blu-ray disc. |
+| DVD    | Video is sourced from a DVD.          |
+|        | Video is sourced from a TV release.   |
+
+Some themes contain dialogue (which I personally don't want). You can set a `--banned-over` lap, that will not show up anymore, possible overlaps are:
+| Overlap    | Meaning                                     |
+| :--------: | :------------------------------------------ |
+| Over       | Part of episode is over the video.          |
+| Transition | Part of episode transitions into the video. |
+| None       | No dialogue in video.                       |
+> Transitions are fairly fine, they don't even have dialogue most of the time, I recommend just banning `Over`
 
 ### download
 Downloads are by default disabled for both video and audio.
@@ -62,47 +77,45 @@ You can enable it by setting a save folder. Save folders are set with `-a` (audi
 The filename format can be changed with `--filename`.
 
 The possible formats are defined in this table:
-| Format            | Meaning                                       |
-| ----------------- | :-------------------------------------------- |
-| malid             | The MyAnimeList anime id.                     |
-| status            | The watch status of the anime.                |
-| year              | The year the anime was released.              |
-| season            | The season the a nime was released.           |
-| score             | Score of the anime.                           |
-| priority          | Watch priority of the anime.                  |
-| episodes          | Amount of episodoes in the anime.             |
-| anime_title       | Title of the anime.                           |
-| title             | Title of the song.                            |
-| type              | Type of the anime theme.                      |
-| shortype          | Type of the anime without index.              |
-| version           | Version of the themes, set by animethemes.    |
-| short_anime_title | Title of the anime made for use in filenames. |
-| original_filename | Original filename of the video file.          |
-| filetype          | Filetype of the theme. webm or mp3            |
+| Format           | Meaning                                     |
+| ---------------- | :------------------------------------------ |
+| anime_id         | Animethemes' id of anime.                   |
+| anime_name       | Name of Anime.                              |
+| anime_slug       | Animethemes' slug of anime.                 |
+| anime_year       | Year the anime came out.                    |
+| anime_season     | Season the anime came out.                  |
+| theme_id         | Animethemes' id of theme.                   |
+| theme_type       | Type of theme (OP/ED).                      |
+| theme_sequence   | Sequence of theme.                          |
+| theme_group      | Group of theme (e.g. language).             |
+| theme_slug       | Animethemes' slug of theme (type+sequence). |
+| entry_id         | Animethemes' id of entry.                   |
+| entry_version    | Version of entry ("" or 1+).                |
+| entry_notes      | Notes of entry (e.g. SFX version).          |
+| video_id         | Animethemes' id of video.                   |
+| video_basename   | Animethemes' basename of video.             |
+| video_filename   | Basename without the filetype.              |
+| video_size       | Size of file in bytes.                      |
+| video_resolution | Resolution of video.                        |
+| video_source     | Where the video was sourced from.           |
+| video_overlap    | Episode overlap over video.                 |
+| song_id          | Animethemes' id of song.                    |
+| song_title       | Title of song.                              |
+| video_filetype   | Filetype of video.                          |
+| anime_filename   | Name of anime used in filenames.            |
 > formats should be used as a python format string, meaning that it will be put as `%(format)s`.
-For example `%(short_anime_title)s-%(type)s.%(filetype)s`
+For example `%(anime_filename)s-%(theme_slug)s.%(video_filetype)s`.
 
 > Windows and Linux banned characters will be removed by default, to remove those and also unicode characters use `--ascii`
 
 You can disable redownloading with `-r`. This is highly recommended.
 
-The order of downloading can be set with `--sort`. This sorts the download data.
-
-The possible sorts are defined in this table:
-| Sort string | Meaning                           |
-| ----------- | --------------------------------- |
-| malid       | The MyAnimeList animeid.          |
-| title       | Title of the anime.               |
-| status      | The watch status of the anime.    |
-| score       | Score of the anime.               |
-| priority    | Watch priority of the anime.      |
-| notes       | Your notes of the anime           |
-| episodes    | Amount of episodoes in the anime. |
-| year        | The year the anime was released.  |
-
 You can add a coverart to audio files with `--coverart`, `--coverart` takes in a resolution, if set, image will be fetched from anilist.co, with high resolutions it's recommended to save them in `--coverart-folder`.
 
 Downloader timeout can be changed with `--timeout` and max amount of retries with `--retries`.
+
+Sometimes when using filters a video that you wanted gets filtered out. you can `--force-videos` and keep them this way.
+> re:zero for example has lots of unique EDs, they have an episode in the background, but like 2 of them have no dialogue, which is fine keeping imo.
 
 ### statuses
 You can download anime that you have `--on-hold`,`--dropped` or `--planned`.
