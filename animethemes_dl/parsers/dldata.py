@@ -152,7 +152,13 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
     Parses an anime and yields download data.
     Returns None if invalid.
     """
+    last_group = None
     for tracknumber,theme in enumerate(anime['themes']):
+        if last_group is not None and theme['group']!=last_group:
+            continue # remove different groups, for example dubs
+        else:
+            last_group = theme['group']
+        
         best = pick_best_entry(theme)
         if best is None:
             continue
