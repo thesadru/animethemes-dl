@@ -20,6 +20,7 @@ class Metadata(TypedDict):
     version: int
     notes: str
     resolution: int
+    videoid: int
     genre: List[int]
     encodedby: str
     cgroup: str
