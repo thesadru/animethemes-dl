@@ -21,6 +21,7 @@ class Metadata(TypedDict):
     notes: str
     resolution: int
     videoid: int
+    filesize: int
     genre: List[int]
     encodedby: str
     cgroup: str

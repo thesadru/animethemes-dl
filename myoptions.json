@@ -10,6 +10,7 @@
         "audio_folder": "C:/Users/Lucka/Music/animethemes/audio",
         "video_folder": "C:/Users/Lucka/Music/animethemes/video",
         "no_redownload": true,
+        "update": true,
         "timeout": 15,
         "coverart": {
             "resolution": 3,

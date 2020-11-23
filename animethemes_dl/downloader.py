@@ -2,7 +2,7 @@
 Download files with DownloadData.
 """
 import logging
-from os import PathLike, makedirs, remove
+from os import PathLike, makedirs, remove, stat
 from os.path import isfile
 from typing import Tuple, List
 
@@ -20,18 +20,24 @@ logger = logging.getLogger('animethemes-dl')
 # optimization
 utils.is_HTTPRange_supported = lambda *_,**__: False
 
-def determine_needed(video: PathLike=None, audio: PathLike=None) -> Tuple[bool,bool]:
+def determine_needed(video: PathLike=None, audio: PathLike=None, videosize_check: int=None) -> Tuple[bool,bool]:
     """
     Check what files need to be downloaded.
+    Can also use an `is_same` in case of upadtes.
     """
     # what files exists
     exvideo = isfile(video) if video else None
     exaudio = isfile(audio) if audio else None
     # what files are needed to be downloaded
     redownload = not OPTIONS['download']['no_redownload']
+    # determine if would update
+    update = (
+        OPTIONS['download']['update'] and videosize_check and # calculate
+        video and isfile(video) and # reason to check
+        stat(video).st_size != videosize_check) # check
     # needed if         can download        and     requested
-    needaudio = (redownload or not exaudio) and audio
-    needvideo = (redownload or not exvideo) and (video or needaudio)
+    needaudio = (redownload or not exaudio or update) and audio
+    needvideo = (redownload or not exvideo or update) and (video or needaudio)
     return needvideo,needaudio
 
 def download_video(data: DownloadData, use_temp: bool=False):
@@ -123,7 +129,9 @@ def batch_download_themes(data: List[DownloadData]):
             pass
     
     for index,theme in enumerate(data,1):
-        dlvideo,dlaudio = determine_needed(theme['video_path'],theme['audio_path'])
+        dlvideo,dlaudio = determine_needed(
+            theme['video_path'],theme['audio_path'],
+            theme['metadata']['filesize'] if OPTIONS['download']['update'] else None)
         if not (dlvideo or dlaudio):
             continue
         

@@ -24,6 +24,7 @@
         "audio_folder": null,
         "video_folder": null,
         "no_redownload": false,
+        "update": false,
         "ascii": false,
         "timeout": 5,
         "retries": 3,

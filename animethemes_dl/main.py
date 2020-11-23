@@ -149,6 +149,12 @@ download.add_argument(
     help="Does not redownload themes that are already downloaded."
 )
 download.add_argument(
+    '-u','--update',
+    action='store_true',
+    help="Updates files. Will not skip redownload if the file size is different.\
+          Must have stored video somewhere"
+)
+download.add_argument(
     '--ascii',
     action='store_true',
     help="Strips all unicode characters from filenames."
@@ -324,6 +330,7 @@ def parse_args(args):
             "audio_folder": args.audio,
             "video_folder": args.video,
             "no_redownload": args.no_redownload,
+            "update": args.update,
             "ascii": args.ascii,
             "timeout": args.timeout,
             "retries": args.retries,
