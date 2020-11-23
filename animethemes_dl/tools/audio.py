@@ -123,6 +123,7 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, malid: int=None):
     audio.add(TXXX(text=metadata['series'],desc='series'))
     audio.add(TXXX(text=metadata['themetype'],desc='themetype'))
     audio.add(TXXX(text=str(metadata['version']),desc='version'))
+    audio.add(TXXX(text=str(metadata['videoid']),desc='videoid'))
     audio.add(TXXX(text=metadata['notes'],desc='notes'))
     audio.add(TCON(text=metadata['genre']))
     audio.add(TENC(text=metadata['encodedby']))

@@ -174,7 +174,7 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
                 'album': anime['name'], # discs should be numbered,
                 'year': anime['year'],
                 'cover': anime['cover'],
-                'track': f"{tracknumber+1}/{anime['themes']}", # an ID3 "track/total" syntax
+                'track': f"{tracknumber+1}/{len(anime['themes'])}", # an ID3 "track/total" syntax
                 # theme
                 'title': theme['song']['title'],
                 'artists': [artist['name'] for artist in theme['song']['artists']],
@@ -184,6 +184,7 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
                 'notes': entry['notes'],
                 # video
                 'resolution': video['resolution'],
+                'videoid': video['id'],
                 # const
                 'genre': [145], # anime
                 'encodedby': 'animethemes.moe',

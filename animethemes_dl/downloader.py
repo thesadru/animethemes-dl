@@ -127,7 +127,7 @@ def batch_download_themes(data: List[DownloadData]):
         if not (dlvideo or dlaudio):
             continue
         
-        logger.info(f"[download] \"{theme['metadata']['disc']} | {theme['metadata']['title']}\" (#{index})")
+        logger.info(f"[download] \"{theme['metadata']['album']} | {theme['metadata']['title']}\" (#{index})")
         
         for retry in range(1,OPTIONS['download']['retries']):
             try:
