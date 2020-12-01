@@ -13,6 +13,7 @@ class AnimeListOptions(TypedDict):
     minscore: Score
 
 class FilterOptions(TypedDict):
+    smart: bool
     spoiler: Optional[bool]
     nsfw: Optional[bool]
     resolution: int
@@ -67,6 +68,7 @@ DEFAULT = {
         'minscore':0
     },
     'filter': {
+        'smart': False,
         'spoiler': None,
         'nsfw': None,
         'resolution':0,

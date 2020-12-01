@@ -7,10 +7,9 @@
         "minscore": 0
     },
     "filter": {
-        "entry": {
-            "spoiler": null,
-            "nsfw": null
-        },
+        "smart": false,
+        "spoiler": null,
+        "nsfw": null,
         "resolution": 0,
         "nc": null,
         "subbed": null,
@@ -28,17 +27,18 @@
         "ascii": false,
         "timeout": 5,
         "retries": 3,
-        "coverart": {
-            "resolution": 0,
-            "folder": null
-        },
-        "compression": {
-            "root_dir": null,
-            "base_name": "animethemes",
-            "format": "tar",
-            "base_dir": null
-        },
+        "max_animethemes_age": 10368000,
         "force_videos": []
+    },
+    "coverart": {
+        "resolution": 0,
+        "folder": null
+    },
+    "compression": {
+        "root_dir": null,
+        "base_name": "animethemes",
+        "format": "tar",
+        "base_dir": null
     },
     "statuses": [
         1,
