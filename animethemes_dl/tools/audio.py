@@ -4,6 +4,7 @@ Includes ffmpeg conversion and id3 tagging.
 """
 import logging
 from mimetypes import guess_extension, guess_type
+import mimetypes
 from os import PathLike, system, listdir
 from os.path import basename, isfile, join, splitext
 from typing import Optional, Tuple
@@ -18,20 +19,6 @@ from ..options import OPTIONS
 from ..parsers.anilist import ALURL
 
 logger = logging.getLogger('animethemes-dl')
-
-COVERARTQUERY = """
-query Media($malid: Int) {
-  Media(idMal: $malid type: ANIME) {
-    idMal
-    coverImage {
-      extraLarge
-      large
-      medium
-      # color
-    }
-  }
-}
-"""
 
 def ffmpeg_convert(old: str, new: str):
     """
@@ -48,27 +35,6 @@ def ffmpeg_convert(old: str, new: str):
         logger.error(f'ffmpeg failed to convert "{old}" to "{new}".')
         raise FfmpegException('Ffmpeg failed to convert.')
 
-def fetch_coverart(malid: int, size:int, query: str=COVERARTQUERY, **variables) -> str:
-    """
-    Returns a coverart url of 1-3 resolution.
-    """
-    variables['malid'] = int(malid)
-    json_arg = {'query':query, 'variables':variables}
-    
-    r = requests.post(ALURL,json=json_arg)
-    if r.status_code == 200:
-        data = r.json()
-    else:
-        return r.raise_for_status()
-    
-    covers = data['data']['Media']['coverImage']
-    return covers[{
-        0:'medium', # prevents some stupid bugs
-        1:'medium',
-        2:'large',
-        3:'extraLarge'
-    }[size]]
-
 def find_file(s: str, directory: str='.') -> Optional[PathLike]:
     """
     Goes through all files in directory and returns one that contains `s`.
@@ -77,32 +43,27 @@ def find_file(s: str, directory: str='.') -> Optional[PathLike]:
         if s in path:
             return join(directory,path)
 
-def get_coverart(malid: int) -> Tuple[bytes,str,str]:
+def get_coverart(metadata: Metadata, malid: int) -> Tuple[bytes,str,str]:
     """
     Gets coverart, description and mime type for an mp3 file.
     """
     coverart_folder = OPTIONS['download']['coverart']['folder']
-    resolution = OPTIONS['download']['coverart']['resolution']
+    resolution = OPTIONS['download']['coverart']['resolution']-1
+    coverart_file = join(coverart_folder,str(malid)+'.png')
     
-    data=None;path=None # my pylance was complaining...
-    if coverart_folder:
-        path = find_file(str(malid),coverart_folder)
-        if path:
-            data = open(path,'rb').read()
-    
-    if data is None:
-        logger.debug(f'Fetching coverart for {malid} ({resolution})')
-        url = fetch_coverart(malid,resolution)
+    if coverart_folder and isfile(coverart_file):
+        with open(coverart_file,'rb') as file:
+            data = file.read()
+        mimetype = guess_type(coverart_file)
+    else:
+        url = metadata['coverarts'][min(resolution, len(metadata['coverarts'])-1)]
         data = requests.get(url).content
-        path = join(coverart_folder,str(malid)+splitext(url)[1])
+        mimetype = guess_type(url)
         if coverart_folder:
-            open(path,'wb').write(data)
+            with open(coverart_file,'wb') as file:
+                file.write(data)
     
-    logger.debug(f'Added coverart {malid} ({len(data)}B).')
-    
-    mimetype = guess_type(path)
-    desc = f"{malid}, resolution {resolution}/3"
-    
+    desc = f'{malid}-{resolution}'
     return data,desc,mimetype
 
 def add_id3_metadata(path: PathLike, metadata: Metadata, malid: int=None):
@@ -129,7 +90,7 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, malid: int=None):
     audio.add(TENC(text=metadata['encodedby']))
     audio.add(TIT1(text=metadata['cgroup']))
     if malid is not None and OPTIONS['download']['coverart']['folder']:
-        coverart,desc,mimetype = get_coverart(malid)
+        coverart,desc,mimetype = get_coverart(metadata,malid)
         audio.add(APIC(encoding=3,mime=mimetype,desc=desc,type=3,data=coverart))
     
     audio.save()

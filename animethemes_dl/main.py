@@ -164,9 +164,9 @@ download.add_argument(
     type=int,
     default=0,
     const=1,
-    choices=[0,1,2,3],
+    choices=[0,1,2],
     nargs='?',
-    metavar="INT[1,2,3]",
+    metavar="INT[1,2]",
     help="Adds coverart to audio files. You can add a resolution in range 1-3."
 )
 download.add_argument(
@@ -195,7 +195,12 @@ download.add_argument(
     nargs='+',
     help="Force video ids to be downloaded. It will not be included in filters."
 )
-
+download.add_argument(
+    '--max-animethemes-age',
+    default=2*24*60*60*60,
+    type=int,
+    help="How long a requests file can be. Used to optimize getting data, since it's rate limited after 50 entries."
+)
 # =============================================================================
 statuses = parser.add_argument_group('statuses')
 statuses.set_defaults(statuses=[1,2])
@@ -334,6 +339,7 @@ def parse_args(args):
             "ascii": args.ascii,
             "timeout": args.timeout,
             "retries": args.retries,
+            "max_animethemes_age": args.max_animethemes_age,
             "coverart": {
                 "resolution":args.coverart,
                 "folder":args.coverart_folder

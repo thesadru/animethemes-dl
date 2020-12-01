@@ -46,6 +46,7 @@ class DownloadOptions(TypedDict):
     timeout: int
     retries: int
     sort: str
+    max_animethemes_age: int
     coverart: CoverartOptions
     compression: CompressionOptions
     force_videos: List[int]
@@ -90,6 +91,7 @@ DEFAULT = {
         'ascii':False,
         'timeout':5,
         'retries':3,
+        'max_animethemes_age':2*24*60*60*60,
         'coverart':{
             'resolution':0,
             'folder': None,

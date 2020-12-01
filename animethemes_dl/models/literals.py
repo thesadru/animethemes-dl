@@ -11,3 +11,4 @@ UrlLike = str
 DateLike = NewType('DateLike',str)
 Types = Literal['OP','ED']
 Season = Literal['Spring','Summer','Fall','Winter']
+ImageFacet = Literal["Large Cover","Small Cover"]
