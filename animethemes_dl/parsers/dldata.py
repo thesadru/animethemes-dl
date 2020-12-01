@@ -27,7 +27,7 @@ def is_entry_wanted(entry: AnimeThemeEntry):
     Determines wheter all the tags in the entry are the same as in OPTIONS
     """
     for k in ('spoiler','nsfw'):
-        v = OPTIONS['filter']['entry'][k]
+        v = OPTIONS['filter'][k]
         if v is not None and entry[k] ^ v:
             return False
     return True

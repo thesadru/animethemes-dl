@@ -12,12 +12,9 @@ class AnimeListOptions(TypedDict):
     minpriority: Priority
     minscore: Score
 
-class EntryFilterOptions(TypedDict):
+class FilterOptions(TypedDict):
     spoiler: Optional[bool]
     nsfw: Optional[bool]
-
-class FilterOptions(TypedDict):
-    entry: EntryFilterOptions
     resolution: int
     nc: Optional[bool]
     subbed: Optional[bool]
@@ -47,8 +44,6 @@ class DownloadOptions(TypedDict):
     retries: int
     sort: str
     max_animethemes_age: int
-    coverart: CoverartOptions
-    compression: CompressionOptions
     force_videos: List[int]
 
 class Options(TypedDict):
@@ -56,6 +51,8 @@ class Options(TypedDict):
     filter: FilterOptions
     download: DownloadOptions
     statuses: List[Status]
+    coverart: CoverartOptions
+    compression: CompressionOptions
     quiet: bool
     no_colors: bool
     ffmpeg: PathLike
@@ -70,10 +67,8 @@ DEFAULT = {
         'minscore':0
     },
     'filter': {
-        'entry': {
-            'spoiler': None,
-            'nsfw': None
-        },
+        'spoiler': None,
+        'nsfw': None,
         'resolution':0,
         'nc': None,
         'subbed': None,
@@ -92,17 +87,17 @@ DEFAULT = {
         'timeout':5,
         'retries':3,
         'max_animethemes_age':2*24*60*60*60,
-        'coverart':{
-            'resolution':0,
-            'folder': None,
-        },
-        'compression':{
-            'root_dir':None,
-            'base_name':'animethemes',
-            'format':'tar',
-            'base_dir':None
-        },
         'force_videos': []
+    },
+    'coverart':{
+        'resolution':0,
+        'folder': None,
+    },
+    'compression':{
+        'root_dir':None,
+        'base_name':'animethemes',
+        'format':'tar',
+        'base_dir':None
     },
     'statuses':[1,2],
     'quiet': False,

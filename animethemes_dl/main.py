@@ -318,10 +318,8 @@ def parse_args(args):
             "minscore": args.minscore
         },
         "filter": {
-            'entry': {
-                'spoiler': filters['spoiler'],
-                'nsfw': filters['nsfw'],
-            },
+            'spoiler': filters['spoiler'],
+            'nsfw': filters['nsfw'],
             'resolution': args.min_resolution,
             'nc': filters['nc'],
             'subbed': filters['subbed'],
@@ -340,17 +338,17 @@ def parse_args(args):
             "timeout": args.timeout,
             "retries": args.retries,
             "max_animethemes_age": args.max_animethemes_age,
-            "coverart": {
-                "resolution":args.coverart,
-                "folder":args.coverart_folder
-            },
-            "compression": {
-                "root_dir":args.compress_dir,
-                "base_name":args.compress_name,
-                "format":args.compress_format,
-                "base_dir":args.compress_base
-            },
             "force_videos": args.force_videos
+        },
+        "coverart": {
+            "resolution":args.coverart,
+            "folder":args.coverart_folder
+        },
+        "compression": {
+            "root_dir":args.compress_dir,
+            "base_name":args.compress_name,
+            "format":args.compress_format,
+            "base_dir":args.compress_base
         },
         "statuses": args.statuses,
         "quiet": args.loglevel>logging.CRITICAL,
