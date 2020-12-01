@@ -86,7 +86,7 @@ def create_folders():
     for path in (
         OPTIONS['download']['audio_folder'],
         OPTIONS['download']['video_folder'],
-        OPTIONS['download']['coverart']['folder']):
+        OPTIONS['coverart']['folder']):
         try: 
             if path:
                 makedirs(path)
@@ -96,7 +96,7 @@ def create_folders():
 def compress_directory(directory: PathLike):
         answer = input(f'Compress {directory}? [y/n] ')
         if answer.lower() == 'y':
-            compress_files(**OPTIONS['download']['compression'])
+            compress_files(**OPTIONS['compression'])
 
 def repair(data: List[DownloadData]):
     """
@@ -105,7 +105,7 @@ def repair(data: List[DownloadData]):
     create_folders()
     deleted = delete_all_unwanted(data,not OPTIONS['ignore_prompts'])
     tagged = update_metadata(data,not OPTIONS['ignore_prompts'])
-    compress_dir = OPTIONS['download']['compression']['root_dir']
+    compress_dir = OPTIONS['compression']['root_dir']
     if compress_dir:
         compress_directory(compress_dir)
     logger.info(f"[repair] deleted {deleted} files, retagged {tagged} audio files{', compressed dir.' if compress_dir else '.'}")

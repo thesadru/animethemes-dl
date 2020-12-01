@@ -121,7 +121,7 @@ def batch_download_themes(data: List[DownloadData]):
     for path in (
         OPTIONS['download']['audio_folder'],
         OPTIONS['download']['video_folder'],
-        OPTIONS['download']['coverart']['folder']):
+        OPTIONS['coverart']['folder']):
         try: 
             if path:
                 makedirs(path)
@@ -164,8 +164,8 @@ def batch_download(options: dict=Options):
     batch_download_themes(data)
     logger.info('[progress] finished downloading')
     
-    if OPTIONS['download']['compression']['root_dir']:
-        compress_files(**OPTIONS['download']['compression'])
+    if OPTIONS['compression']['root_dir']:
+        compress_files(**OPTIONS['compression'])
 
 if __name__ == '__main__':
     logging.basicConfig(

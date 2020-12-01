@@ -47,8 +47,8 @@ def get_coverart(metadata: Metadata, malid: int) -> Tuple[bytes,str,str]:
     """
     Gets coverart, description and mime type for an mp3 file.
     """
-    coverart_folder = OPTIONS['download']['coverart']['folder']
-    resolution = OPTIONS['download']['coverart']['resolution']-1
+    coverart_folder = OPTIONS['coverart']['folder']
+    resolution = OPTIONS['coverart']['resolution']-1
     coverart_file = join(coverart_folder,str(malid)+'.png')
     
     if coverart_folder and isfile(coverart_file):
@@ -72,7 +72,7 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, malid: int=None):
     Uses ID3 v2.4.
     If no malid is given, coverart cannot be added.
     """
-    logger.info(f"[tag] Adding metadata{' (w/coverart) 'if OPTIONS['download']['coverart']['folder'] else' '}for {basename(path)}")
+    logger.info(f"[tag] Adding metadata{' (w/coverart) 'if OPTIONS['coverart']['folder'] else' '}for {basename(path)}")
     audio = ID3(path)
     audio.clear()
     audio.add(TALB(text=metadata['album']))
@@ -89,7 +89,7 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, malid: int=None):
     audio.add(TCON(text=metadata['genre']))
     audio.add(TENC(text=metadata['encodedby']))
     audio.add(TIT1(text=metadata['cgroup']))
-    if malid is not None and OPTIONS['download']['coverart']['folder']:
+    if malid is not None and OPTIONS['coverart']['folder']:
         coverart,desc,mimetype = get_coverart(metadata,malid)
         audio.add(APIC(encoding=3,mime=mimetype,desc=desc,type=3,data=coverart))
     
