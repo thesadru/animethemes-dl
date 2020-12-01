@@ -3,7 +3,7 @@
         "username": "sadru"
     },
     "filter": {
-        "overlap": "Over"
+        "smart": true
     },
     "download": {
         "filename": "%(anime_filename)s-%(theme_slug)s.%(video_filetype)s",
@@ -12,21 +12,17 @@
         "no_redownload": true,
         "update": true,
         "timeout": 15,
-        "max_animethemes_age": 36288000,
-        "coverart": {
-            "resolution": 2,
-            "folder": "C:/Users/D/Music/animethemes/coverarts"
-        },
-        "compression": {
-            "root_dir": "C:/Users/D/Music/animethemes",
-            "base_name": "C:/Users/D/Music/animethemes/animethemes",
-            "format": "tar",
-            "base_dir": "audio"
-        },
-        "force_videos": [
-            10275,
-            8952,8948,8949,8950,8951
-        ]
+        "max_animethemes_age": 36288000
+    },
+    "coverart": {
+        "resolution": 2,
+        "folder": "C:/Users/D/Music/animethemes/coverarts"
+    },
+    "compression": {
+        "root_dir": "C:/Users/D/Music/animethemes",
+        "base_name": "C:/Users/D/Music/animethemes/animethemes",
+        "format": "tar",
+        "base_dir": "audio"
     },
     "statuses": [1,2],
     "ffmpeg": "ffmpeg"

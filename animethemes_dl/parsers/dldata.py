@@ -45,7 +45,7 @@ def is_video_wanted(video: AnimeThemeVideo):
         return False
     if OPTIONS['filter']['source'] is not None and video['source'] != OPTIONS['filter']['source']:
         return False
-    if OPTIONS['filter']['overlap'] is not None and video['overlap'] == OPTIONS['filter']['overlap']: # uses banned instead of forced
+    if OPTIONS['filter']['overlap'] is not None and video['overlap'] not in OPTIONS['filter']['overlap']: # uses lists
         return False
     
     return True
@@ -134,10 +134,14 @@ def pick_best_entry(theme: AnimeThemeTheme) -> (
         # picking best video
         videos = []
         for video in entry['videos']:
-            if is_video_wanted(video) or video['id'] in OPTIONS['download']['force_videos']:
+            if ((is_video_wanted(video) or video['id'] in OPTIONS['download']['force_videos']) and 
+                not (OPTIONS['filter']['smart'] and entry['spoiler'] and video['overlap']!='None')
+            ):
                 videos.append(video)
         # can't append empty videos
         if videos:
+            # sort videos by giving points
+            videos.sort(key=lambda x: ('None','Transition','Over').index(x['overlap']))
             entries.append((entry,videos[0])) # pick first (best)
     
     # there's a chance no entries will be found

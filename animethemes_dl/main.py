@@ -88,6 +88,11 @@ animelist_filters.add_argument(
 
 tag_filters = parser.add_argument_group('tag filters')
 tag_filters.add_argument(
+    '--smart','--smart-filter',
+    action='store_true',
+    help="Smart filters out dialogue."
+)
+tag_filters.add_argument(
     '--required-tags','--rtags',
     default=[],
     metavar="TAGS",
@@ -116,11 +121,12 @@ tag_filters.add_argument(
     help="The required source. Either DVD or BD."
 )
 tag_filters.add_argument(
-    '--banned-over','--bover',
+    '--overlap','--over',
     default=None,
+    nargs='+',
     choices=('Over','Transition','None'),
     metavar="TAG",
-    help="Do not give themes with given overlap. Either Over,Transition or None."
+    help="Give only themes with given overlap. Either Over,Transition or None."
 )
 
 
@@ -326,7 +332,7 @@ def parse_args(args):
             'lyrics': filters['lyrics'],
             'uncen': filters['uncen'],
             'source': args.source,
-            'overlap': args.banned_over,
+            'overlap': args.overlap,
         },
         "download": {
             **({"filename": args.filename} if args.filename else {}),
