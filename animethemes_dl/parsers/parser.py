@@ -23,7 +23,7 @@ def get_animethemes(username: str, anilist: bool=False, **animelist_args) -> Lis
         animelist = get_anilist(username, **animelist_args)
     else:
         animelist = get_mal(username, **animelist_args)
-    return fetch_animethemes(animelist,'[^] %s/%s' if logger.level<=logging.INFO else '')
+    return fetch_animethemes(animelist)
 
 if __name__ == "__main__":
     from pprint import pprint

@@ -165,7 +165,7 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
         entry,video = best
         
         # fix some problems
-        video['link'] = video['link'].replace('animethemes.dev','animethemes.moe')
+        video['link'] = video['link'].replace('https://staging.animethemes.moe','https://animethemes.moe')
         entry['version'] = entry['version'] if entry['version'] else 1
         series = [series['name'] for series in anime['series']]
         # get video path
@@ -179,8 +179,8 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
                 'series': series[0] if len(series)==1 else anime['name'], # mashups are it's own thing (ie isekai quarter)
                 'album': anime['name'], # discs should be numbered,
                 'year': anime['year'],
-                'cover': anime['cover'],
                 'track': f"{tracknumber+1}/{len(anime['themes'])}", # an ID3 "track/total" syntax
+                'coverarts': [i['link'] for i in anime['images']][::-1],
                 # theme
                 'title': theme['song']['title'],
                 'artists': [artist['name'] for artist in theme['song']['artists']],

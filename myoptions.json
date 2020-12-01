@@ -7,23 +7,23 @@
     },
     "download": {
         "filename": "%(anime_filename)s-%(theme_slug)s.%(video_filetype)s",
-        "audio_folder": "C:/Users/Lucka/Music/animethemes/audio",
-        "video_folder": "C:/Users/Lucka/Music/animethemes/video",
+        "audio_folder": "C:/Users/D/Music/animethemes/audio",
+        "video_folder": "C:/Users/D/Music/animethemes/video",
         "no_redownload": true,
         "update": true,
         "timeout": 15,
+        "max_animethemes_age": 36288000,
         "coverart": {
-            "resolution": 3,
-            "folder": "C:/Users/Lucka/Music/animethemes/coverarts"
+            "resolution": 2,
+            "folder": "C:/Users/D/Music/animethemes/coverarts"
         },
         "compression": {
-            "root_dir": "C:/Users/Lucka/Music/animethemes",
-            "base_name": "C:/Users/Lucka/Music/animethemes/animethemes",
+            "root_dir": "C:/Users/D/Music/animethemes",
+            "base_name": "C:/Users/D/Music/animethemes/animethemes",
             "format": "tar",
             "base_dir": "audio"
         },
         "force_videos": [
-            6940,6941,
             10275,
             8952,8948,8949,8950,8951
         ]

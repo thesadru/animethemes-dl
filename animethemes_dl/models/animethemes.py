@@ -3,7 +3,7 @@ Animethemes ap model.
 Copied from the flowchart the dev posted in discord.
 """
 from typing import Literal, TypedDict, List, Union
-from .literals import UrlLike, DateLike, Types, Season
+from .literals import UrlLike, DateLike, Types, Season, ImageFacet
 
 class AnimeThemeDict(TypedDict):
     id: int
@@ -63,17 +63,22 @@ class AnimeThemeResource(AnimeThemeDict):
     site: str
     as_: str
 
+class AnimeThemeImage(AnimeThemeDict):
+    path: str
+    facet: ImageFacet
+    link: UrlLike
+
 class AnimeThemeAnime(AnimeThemeDict):
     name: str
     slug: str
     year: int
     season: Season
     synopsis: str
-    cover: str
     synonyms: List[AnimeThemeSynonym]
     themes: List[AnimeThemeTheme]
     series: List[AnimeThemeSerie]
     resources: List[AnimeThemeResource]
+    images: List[AnimeThemeImage]
 
 if __name__ == "__main__":
     from ..parsers.animethemes import fetch_animethemes
