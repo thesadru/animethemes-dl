@@ -1,0 +1,1 @@
+x-terminal-emulator -e python -m animethemes_dl $@

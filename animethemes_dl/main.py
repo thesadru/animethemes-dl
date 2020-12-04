@@ -4,7 +4,6 @@ Command line version of animethemes-dl.
 import argparse
 import json
 import logging
-from json import load
 from os.path import realpath
 from pprint import pformat
 
@@ -84,6 +83,14 @@ animelist_filters.add_argument(
     default=0,
     metavar="INT[0-2]",
     help="Minimum priority that an anime must have to be downloaded (0-2 scale)"
+)
+animelist_filters.add_argument(
+    '--range',
+    type=int,
+    default=[0,0],
+    nargs=2,
+    metavar="INT",
+    help="Uses only a set range of an animelist."
 )
 
 tag_filters = parser.add_argument_group('tag filters')

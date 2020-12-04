@@ -23,6 +23,9 @@ def get_animethemes(username: str, anilist: bool=False, **animelist_args) -> Lis
         animelist = get_anilist(username, **animelist_args)
     else:
         animelist = get_mal(username, **animelist_args)
+    if any(OPTIONS['animelist']['range']):
+        s,e = OPTIONS['animelist']['range']
+        animelist = animelist[s:e or None]
     return fetch_animethemes(animelist)
 
 if __name__ == "__main__":
