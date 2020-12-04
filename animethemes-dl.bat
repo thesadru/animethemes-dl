@@ -1,0 +1,1 @@
+start cmd.exe /k python -m animethemes_dl %* --range 

@@ -3,7 +3,7 @@ Option data type and option defaults.
 """
 from os import PathLike
 from .literals import Score,Priority,Status
-from typing import Optional,List,TypedDict,Literal
+from typing import Optional,List,Tuple,TypedDict,Literal
 
 class AnimeListOptions(TypedDict):
     username: str
@@ -11,6 +11,7 @@ class AnimeListOptions(TypedDict):
     animelist_args: dict
     minpriority: Priority
     minscore: Score
+    range: Tuple[int,int]
 
 class FilterOptions(TypedDict):
     smart: bool
@@ -65,7 +66,8 @@ DEFAULT = {
         'anilist': False,
         'animelist_args': {},
         'minpriority':0,
-        'minscore':0
+        'minscore':0,
+        'range':[0,0]
     },
     'filter': {
         'smart': False,
