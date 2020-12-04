@@ -10,7 +10,6 @@
         "audio_folder": "C:/Users/D/Music/animethemes/audio",
         "video_folder": "C:/Users/D/Music/animethemes/video",
         "no_redownload": true,
-        "update": true,
         "timeout": 15,
         "max_animethemes_age": 36288000
     },

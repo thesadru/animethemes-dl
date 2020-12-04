@@ -45,7 +45,7 @@ There are filters for minimum score and priority.
 ### tag filters
 You can set `--banned-tags` or `--required-tags`. These will take multiple tags, possible tags are:
 | Tag     | Meaning                                       |
-| :-----: | :-------------------------------------------- |
+|:-------:|:----------------------------------------------|
 | spoiler | Video contains spoilers.                      |
 | nsfw    | Video is NSFW.                                |
 | nc      | No captions/no credits.                       |
@@ -57,14 +57,14 @@ You can set a `--min-resolution`, they show up in `420,720,1080`.
 
 You can set the required `--source`, possible sources are:
 | Source | Meaning                               |
-| :----: | :------------------------------------ |
+|:------:|:--------------------------------------|
 | BD     | Video is sourced from a Blu-ray disc. |
 | DVD    | Video is sourced from a DVD.          |
 |        | Video is sourced from a TV release.   |
 
 Some themes contain dialogue (which I personally don't want). You can set a `--banned-over` lap, that will not show up anymore, possible overlaps are:
 | Overlap    | Meaning                                     |
-| :--------: | :------------------------------------------ |
+|:----------:|:--------------------------------------------|
 | Over       | Part of episode is over the video.          |
 | Transition | Part of episode transitions into the video. |
 | None       | No dialogue in video.                       |
@@ -78,7 +78,7 @@ The filename format can be changed with `--filename`.
 
 The possible formats are defined in this table:
 | Format           | Meaning                                     |
-| ---------------- | :------------------------------------------ |
+| -----------------|:--------------------------------------------|
 | anime_id         | Animethemes' id of anime.                   |
 | anime_name       | Name of Anime.                              |
 | anime_slug       | Animethemes' slug of anime.                 |
@@ -153,36 +153,43 @@ The default options are:
         "minscore": 0
     },
     "filter": {
-        "spoilers": true,
-        "nsfw": true,
-        "nocredits": false,
-        "lyrics": false,
-        "bluray": false,
-        "DVD": false,
-        "1080": false,
-        "480": false
+        "smart": false,
+        "spoiler": null,
+        "nsfw": null,
+        "resolution": 0,
+        "nc": null,
+        "subbed": null,
+        "lyrics": null,
+        "uncen": null,
+        "source": null,
+        "overlap": null
     },
     "download": {
-        "filename": "%(short_anime_title)s-%(type)s.%(filetype)s",
+        "filename": "%(anime_filename)s-%(theme_slug)s.%(video_filetype)s",
         "audio_folder": null,
         "video_folder": null,
         "no_redownload": false,
+        "update": false,
         "ascii": false,
         "timeout": 5,
         "retries": 3,
-        "sort": null,
-        "coverart": {
-            "resolution": 0,
-            "folder": null
-        },
-        "compression": {
-            "root_dir": null,
-            "base_name": "animethemes",
-            "format": "tar",
-            "base_dir": null
-        }
+        "max_animethemes_age": 10368000,
+        "force_videos": []
     },
-    "statuses": [1,2],
+    "coverart": {
+        "resolution": 0,
+        "folder": null
+    },
+    "compression": {
+        "root_dir": null,
+        "base_name": "animethemes",
+        "format": "tar",
+        "base_dir": null
+    },
+    "statuses": [
+        1,
+        2
+    ],
     "quiet": false,
     "no_colors": false,
     "ffmpeg": "ffmpeg",
@@ -201,7 +208,7 @@ examples:
 ```py
 # parsers module uses API's to get data
 import animethemes_dl.parsers as parsers
-parsers.get_themes(username) # gets raw data
+parsers.fetch_animethemes(username) # fetchess raw data
 parsers.get_download_data(username) # gets download data
 
 # models module uses typedDict to help language servers
@@ -222,7 +229,7 @@ tools.update_metadata(
 import animethemes_dl
 data = parsers.get_download_data(username)
 for theme in data:
-  animethemes_dl.download_themes(theme,True)
+  animethemes_dl.download_theme(theme,True)
 
 # you can directly change options
 animethemes_dl.setOptions(options)
@@ -253,4 +260,4 @@ except FfmpegException:
 # TODO
 - code optimizations
 - improve code documentation
-- add metadata for `DICS, TRACK NO., COMMENT, SCORE, COPYRIGHT, LANGUAGE, STUDIO, FEATUERD ARTISTS`
+- range options, since animethemes disabled multithreaded dl.
