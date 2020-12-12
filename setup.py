@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='animethemes-dl',
-    version='2.0.0',
+    version='2.2.0',
     author='thesadru',
     author_email='dan0.suman@gmail.com',
     description='Downloads anime themes from animethemes.moe. Supports Batch download and animelist connecting.',
