@@ -169,7 +169,7 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
         entry,video = best
         
         # fix some problems
-        video['link'] = video['link'].replace('https://staging.animethemes.moe','https://animethemes.moe')
+        video['link'] = video['link'].replace('https://v.staging.animethemes.moe','https://animethemes.moe/video')
         entry['version'] = entry['version'] if entry['version'] else 1
         series = [series['name'] for series in anime['series']]
         # get video path
