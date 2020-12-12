@@ -264,3 +264,4 @@ except FfmpegException:
 - code optimizations
 - improve code documentation
 - concurrent downloads, since animethemes disabled multithreaded dl.
+- fix replacing themes that are binded to multiple anime when using `--update`
