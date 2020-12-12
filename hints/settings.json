@@ -4,7 +4,11 @@
         "anilist": false,
         "animelist_args": {},
         "minpriority": 0,
-        "minscore": 0
+        "minscore": 0,
+        "range": [
+            0,
+            0
+        ]
     },
     "filter": {
         "smart": false,

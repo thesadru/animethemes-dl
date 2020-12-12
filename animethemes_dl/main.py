@@ -212,7 +212,7 @@ download.add_argument(
     '--max-animethemes-age',
     default=2*24*60*60*60,
     type=int,
-    help="How long a requests file can be. Used to optimize getting data, since it's rate limited after 50 entries."
+    help="How long a requests file can be. Used to optimize getting data, since it's rate limited."
 )
 # =============================================================================
 statuses = parser.add_argument_group('statuses')

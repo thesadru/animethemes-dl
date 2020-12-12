@@ -7,8 +7,8 @@
 # what's this project
 This project allows you to automaticaly download opening and ending songs from all of your favorite anime without the need of downloading everything yourself. Since almost every weeb uses MAL to track the anime he's watching, this tool is really useful, as every information you need to give it has been written down already. All you need to do is to enter your [MAL](https://myanimelist.net) or [AniList](https://anilist.co) username.
 
-# disclaimer
-All videos are downloaded from [animethemes.moe](https://animethemes.moe/). If you plan on using this program just for looking at openings, I recommend using [themes.moe](https://themes.moe/) instead. This program is made for creating your own playlist and such.
+# reminder
+All videos are downloaded from [animethemes.moe](https://animethemes.moe/). If you plan on using this program just for looking at openings, I recommend using [themes.moe](https://themes.moe/) or their [own site](https://animethemes.github.io/animethemes-web/) instead. This program is made for creating your own playlist and such.
 
 # what's this project for
 This project was made for batch downloading themes from anime you have watched, but is programmed so it's easily improved, making it possible to add very easily. It's made with both command line usage and with python as a module.
@@ -41,8 +41,11 @@ There are filters for minimum score and priority.
 
 `--minscore` is the minimum score between 0 and 10.
 `--minpriority` is the minimum priority. For mal, use `Low=0,Medium=1,High=2`
+`--range <start> <end>` only gets a slice of the animelist.
 
 ### tag filters
+By default, you can just use a `--smart` filter, that takes out all the dialogue. This works by removing all themes that contains a part of the episode and spoilers at the same time. This works 95% of the time.
+
 You can set `--banned-tags` or `--required-tags`. These will take multiple tags, possible tags are:
 | Tag     | Meaning                                       |
 |:-------:|:----------------------------------------------|
@@ -62,7 +65,7 @@ You can set the required `--source`, possible sources are:
 | DVD    | Video is sourced from a DVD.          |
 |        | Video is sourced from a TV release.   |
 
-Some themes contain dialogue (which I personally don't want). You can set a `--banned-over` lap, that will not show up anymore, possible overlaps are:
+Some themes contain a part of the episode. You can set a `--overlap` to show only some overlaps.
 | Overlap    | Meaning                                     |
 |:----------:|:--------------------------------------------|
 | Over       | Part of episode is over the video.          |
@@ -117,6 +120,8 @@ Downloader timeout can be changed with `--timeout` and max amount of retries wit
 Sometimes when using filters a video that you wanted gets filtered out. you can `--force-videos` and keep them this way.
 > re:zero for example has lots of unique EDs, they have an episode in the background, but like 2 of them have no dialogue, which is fine keeping imo.
 
+Data from animethemes is sending a lot of requests at the same time, so to reduce stress on the servers, the data is saved in a temp folder. You can change it's max age with `--max-animethemes-age`.
+
 ### statuses
 You can download anime that you have `--on-hold`,`--dropped` or `--planned`.
 
@@ -129,7 +134,7 @@ You can choose the `--compress-format`, this must be a format allowed by `shutil
 Additionally you can set the `--compress-base`.
 
 ### printing
-You can set the loglevel with `--loglevel`. This will set the `logging.setLevel(x*10)`.
+You can set the loglevel with `--loglevel`. This will set the `logger.setLevel(x*10)`.
 There are quick commands `--quiet` (print none) and `--verbose` (print all). To restrict download and ffmpeg messages, you MUST use `--quiet`.
 
 You can disable color with `--no-color`.
@@ -150,7 +155,8 @@ The default options are:
         "anilist": false,
         "animelist_args": {},
         "minpriority": 0,
-        "minscore": 0
+        "minscore": 0,
+        "range": [0,0]
     },
     "filter": {
         "smart": false,
@@ -186,10 +192,7 @@ The default options are:
         "format": "tar",
         "base_dir": null
     },
-    "statuses": [
-        1,
-        2
-    ],
+    "statuses": [1,2],
     "quiet": false,
     "no_colors": false,
     "ffmpeg": "ffmpeg",
@@ -213,7 +216,7 @@ parsers.get_download_data(username) # gets download data
 
 # models module uses typedDict to help language servers
 import animethemes_dl.models as models
-animelist: RawAnimeList = _myanimefunc()
+animelist: AnimeThemeAnime = _myanimefunc()
 metadata: Metadata = _mymetadatafunc2()
 
 # tools have multiple tools used for several stuff
@@ -239,7 +242,7 @@ import animethemes_dl.errors as errors
 try:
   animethemes_dl.batch_download(data)
 except FfmpegException:
-  print('I have no idea what happened')
+  print('oh no')
 ```
 
 # how does it work?
@@ -260,4 +263,4 @@ except FfmpegException:
 # TODO
 - code optimizations
 - improve code documentation
-- range options, since animethemes disabled multithreaded dl.
+- concurrent downloads, since animethemes disabled multithreaded dl.
