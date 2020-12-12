@@ -50,7 +50,7 @@ def download_video(data: DownloadData, use_temp: bool=False):
     else:
         dest = data['video_path']
     
-    logger.debug(f'downloading to {dest}')
+    logger.debug(f'downloading "{data["url"]}" to "{dest}"')
     
     obj = SmartDL(
         data['url'],
