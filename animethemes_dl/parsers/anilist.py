@@ -16,7 +16,7 @@ logger = logging.getLogger('animethemes-dl')
 ALURL = 'https://graphql.anilist.co'
 ALQUERY = """
 query userList($user: String) {
-  MediaListCollection(userName: $user, type: ANIME) {
+    MediaListCollection(userName: $user, type: ANIME) {
     lists {
       status
       entries {
@@ -94,9 +94,8 @@ def sort_anilist(data: dict) -> List[Tuple[int,str]]:
                 priority >= OPTIONS['animelist']['minpriority']
             ):
                 continue
-            
             if ( # invalid date
-                None in start_date['year'].values() or # didn't start
+                None in start_date.values() or # didn't start
                 datetime(**start_date) > datetime.now() # didn't start yet
             ):
                 continue
