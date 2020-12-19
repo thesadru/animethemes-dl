@@ -39,7 +39,6 @@ def is_video_wanted(video: AnimeThemeVideo):
     for k in ('nc','subbed','lyrics','uncen'):
         v = OPTIONS['filter'][k]
         if v is not None and video[k] ^ v:
-            print(k,v)
             return False
     if video['resolution'] < OPTIONS['filter']['resolution']:
         return False
