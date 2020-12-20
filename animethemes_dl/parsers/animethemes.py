@@ -135,10 +135,10 @@ def fetch_animethemes(animelist: List[Tuple[int,str]]) -> List[AnimeThemeAnime]:
         animethemes.extend(run_executor(animelist,progressbar))
     else:
         animethemes = list(run_executor(animelist,progressbar))
+        with open(TEMPFILE,'w') as file:
+            logger.debug(f'Storing animethemes data in {TEMPFILE}')
+            json.dump(animethemes,file)
     
-    with open(TEMPFILE,'w') as file:
-        logger.debug(f'Storing animethemes data in {TEMPFILE}')
-        json.dump(animethemes,file)
     return animethemes
 
 if __name__ == "__main__":
