@@ -2,13 +2,15 @@
 Parses data and returns download data.
 """
 import logging
-from os import PathLike
+import re
 import string
+from os import PathLike
+from os.path import join, realpath, splitext
 from pprint import pprint
-from os.path import join, realpath, split, splitext
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple
 
-from ..models.animethemes import AnimeThemeAnime, AnimeThemeEntry, AnimeThemeTheme, AnimeThemeVideo
+from ..models.animethemes import (AnimeThemeAnime, AnimeThemeEntry,
+                                  AnimeThemeTheme, AnimeThemeVideo)
 from ..models.dldata import DownloadData
 from ..options import OPTIONS
 from .parser import get_animethemes
@@ -20,7 +22,21 @@ FILENAME_BAD = set('#%&{}\\<>*?/$!\'":@+`|')
 FILENAME_BANNED = set('<>:"/\\|?*')
 FILENAME_ALLOWEDASCII = set(string.printable).difference(FILENAME_BANNED)
 
-# NOTE: code could be optimized by using .pop in the for loops
+# this regex is for getting metadata from a song name, might be straight up wrong
+FEATURED_RE = re.compile(r"""^
+(.*?) # song name
+(?:
+  \ \(?feat\.\  (
+    [\w ]+ # artist name
+    (?:\([\w ]+\))? # artists second name
+  )\)?
+  
+  |
+  
+  \(([\w ]+)\) # comment enclosed in "()"
+  (?:\ (.+))? # after comment details
+)?
+$""",re.VERBOSE)
 
 def is_entry_wanted(entry: AnimeThemeEntry):
     """
@@ -157,6 +173,10 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
     """
     last_group = None
     for tracknumber,theme in enumerate(anime['themes']):
+        # remove unwanted tags in song title (feat and brackets)
+        match = FEATURED_RE.match(theme['song']['title'])
+        theme['song']['title'],featured,comments,version = match.groups()
+
         if last_group is not None and theme['group']!=last_group:
             continue # remove different groups, for example dubs
         else:
@@ -198,7 +218,11 @@ def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
                 # const
                 'genre': [145], # anime
                 'encodedby': 'animethemes.moe',
-                'cgroup': 'anime theme' # content group
+                'cgroup': 'anime theme', # content group
+                # data pulled from filename
+                'file_featured':featured,
+                'file_comments':comments,
+                'file_version':version
             },
             'info': {
                 'malid':[r['external_id'] for r in anime['resources'] if r['site']=='MyAnimeList'][0]
@@ -232,10 +256,12 @@ def get_download_data(username: str, anilist: bool = False, animelist_args={}) -
     return data
 
 if __name__ == "__main__":
-    from .animethemes import fetch_animethemes
-    from pprint import pprint
-    import sys
     import json
+    import sys
+    from pprint import pprint
+
+    from .animethemes import fetch_animethemes
+    
     if len(sys.argv)==1:
         pprint(get_download_data('sadru'))
     else:
