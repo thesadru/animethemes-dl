@@ -53,7 +53,7 @@ def get_raw_mal(username: str, **kwargs) -> list:
             return out
         offset += 300
 
-def filter_mal(data: list) -> List[Tuple[int,str]]:
+def parse_mal(data: list) -> List[Tuple[int,str]]:
     """
     Filters a MAL list and returns a list of malids and titles.
     Removes all unwanted statuses, scores, priorities.
@@ -91,7 +91,7 @@ def get_mal(username: str, **kwargs) -> List[Tuple[int,str]]:
     """
     measure = Measure()
     raw = get_raw_mal(username, **kwargs)
-    titles = filter_mal(raw)
+    titles = parse_mal(raw)
     logger.info(f'[get] Got data from MAL in {measure()}s.')
     return titles
 

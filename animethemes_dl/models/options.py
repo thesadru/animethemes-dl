@@ -15,6 +15,7 @@ class AnimeListOptions(TypedDict):
 
 class FilterOptions(TypedDict):
     smart: bool
+    no_copy: bool
     spoiler: Optional[bool]
     nsfw: Optional[bool]
     resolution: int
@@ -71,6 +72,7 @@ DEFAULT = {
     },
     'filter': {
         'smart': False,
+        'no_copy': False,
         'spoiler': None,
         'nsfw': None,
         'resolution':0,

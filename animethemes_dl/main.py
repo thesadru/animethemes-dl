@@ -93,41 +93,46 @@ animelist_filters.add_argument(
     help="Uses only a set range of an animelist."
 )
 
-tag_filters = parser.add_argument_group('tag filters')
-tag_filters.add_argument(
+filters = parser.add_argument_group('filters')
+filters.add_argument(
     '--smart','--smart-filter',
     action='store_true',
     help="Smart filters out dialogue."
 )
-tag_filters.add_argument(
+filters.add_argument(
+    '--no-copy','--no-copies','--nc',
+    action='store_true',
+    help="Does not download songs with the same name, keeps only the first one."
+)
+filters.add_argument(
     '--required-tags','--rtags',
     default=[],
     metavar="TAGS",
     nargs='+',
     help="Required tags for themes, check README for possible tags."
 )
-tag_filters.add_argument(
+filters.add_argument(
     '--banned-tags','--btags',
     default=[],
     metavar="TAGS",
     nargs='+',
     help="Banned tags for themes, check README for possible tags."
 )
-tag_filters.add_argument(
+filters.add_argument(
     '--min-resolution','--res',
     default=0,
     type=int,
     metavar="INT",
     help="Minimum resolution of video."
 )
-tag_filters.add_argument(
+filters.add_argument(
     '--source',
     default=None,
     choices=('','DVD','BD'),
     metavar="TAG",
     help="The required source. Either DVD or BD."
 )
-tag_filters.add_argument(
+filters.add_argument(
     '--overlap','--over',
     default=None,
     nargs='+',
@@ -331,6 +336,8 @@ def parse_args(args):
             "minscore": args.minscore
         },
         "filter": {
+            'smart': args.smart,
+            'no_copy': args.no_copy,
             'spoiler': filters['spoiler'],
             'nsfw': filters['nsfw'],
             'resolution': args.min_resolution,
