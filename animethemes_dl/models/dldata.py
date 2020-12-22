@@ -12,19 +12,27 @@ class Metadata(TypedDict):
     album: str
     disc: str
     year: int
-    cover: UrlLike
+    coverarts: List[UrlLike]
+    
     track: str # {int}/{int}
     title: str
     artists: List[str]
     themetype: str
+    
     version: int
     notes: str
+    
     resolution: int
     videoid: int
     filesize: int
+    
     genre: List[int]
     encodedby: str
     cgroup: str
+    
+    file_featured: str
+    file_comments: str
+    file_version: str
 
 class DownloadInfo(TypedDict):
     malid: int

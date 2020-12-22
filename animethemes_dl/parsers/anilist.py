@@ -64,7 +64,7 @@ def get_raw_anilist(username: str, query: str=ALQUERY, **vars) -> dict:
         logger.debug(f'Got {sum(len(i) for i in lists)} enries from anilist.')
         return lists
 
-def sort_anilist(data: dict) -> List[Tuple[int,str]]:
+def parse_anilist(data: dict) -> List[Tuple[int,str]]:
     """
     Filters an anilist list and returns a list of titles.
     Removes all unwanted statuses, scores, priorities.
@@ -109,7 +109,7 @@ def get_anilist(username: str, **vars) -> List[Tuple[int,str]]:
     """
     measure = Measure()
     raw = get_raw_anilist(username, **vars)
-    data = sort_anilist(raw)
+    data = parse_anilist(raw)
     logger.info(f'[get] Got data from anilist in {measure()}s.')
     return data
 

@@ -27,13 +27,13 @@ FEATURED_RE = re.compile(r"""^
 (.*?) # song name
 (?:
   \ \(?feat\.\  (
-    [\w ]+ # artist name
-    (?:\([\w ]+\))? # artists second name
+    [\w\ ]+ # artist name
+    (?:\([\w\ ]+\))? # artists second name
   )\)?
   
   |
   
-  \(([\w ]+)\) # comment enclosed in "()"
+  \(([\w\ ]+)\) # comment enclosed in "()"
   (?:\ (.+))? # after comment details
 )?
 $""",re.VERBOSE)
@@ -166,79 +166,85 @@ def pick_best_entry(theme: AnimeThemeTheme) -> (
         logger.debug(f"removed {theme['song']['title']}/{theme['slug']} ({theme['id']})")
         return None
 
-def parse_anime(anime: AnimeThemeAnime) -> Iterable[DownloadData]:
+def parse_download_data(data: List[AnimeThemeAnime]) -> Iterable[DownloadData]:
     """
     Parses an anime and yields download data.
     Returns None if invalid.
     """
-    last_group = None
-    for tracknumber,theme in enumerate(anime['themes']):
-        # remove unwanted tags in song title (feat and brackets)
-        match = FEATURED_RE.match(theme['song']['title'])
-        theme['song']['title'],featured,comments,version = match.groups()
-
-        if last_group is not None and theme['group']!=last_group:
-            continue # remove different groups, for example dubs
-        else:
-            last_group = theme['group']
-        
-        best = pick_best_entry(theme)
-        if best is None:
-            continue
-        entry,video = best
-        
-        # fix some problems
-        video['link'] = video['link'].replace('https://v.staging.animethemes.moe','https://animethemes.moe/video')
-        entry['version'] = entry['version'] if entry['version'] else 1
-        series = [series['name'] for series in anime['series']]
-        # get video path
-        videopath,audiopath = generate_path(anime,theme,entry,video)
-        yield {
-            'url': video['link'],
-            'video_path': videopath,
-            'audio_path': audiopath,
-            'metadata': {
-                # anime
-                'series': series[0] if len(series)==1 else anime['name'], # mashups are it's own thing (ie isekai quarter)
-                'album': anime['name'], # discs should be numbered,
-                'year': anime['year'],
-                'track': f"{tracknumber+1}/{len(anime['themes'])}", # an ID3 "track/total" syntax
-                'coverarts': [i['link'] for i in anime['images']][::-1],
-                # theme
-                'title': theme['song']['title'],
-                'artists': [artist['name'] for artist in theme['song']['artists']],
-                'themetype': theme['slug'],
-                # entry
-                'version': entry['version'],
-                'notes': entry['notes'],
-                # video
-                'resolution': video['resolution'],
-                'videoid': video['id'],
-                'filesize': video['size'],
-                # const
-                'genre': [145], # anime
-                'encodedby': 'animethemes.moe',
-                'cgroup': 'anime theme', # content group
-                # data pulled from filename
-                'file_featured':featured,
-                'file_comments':comments,
-                'file_version':version
-            },
-            'info': {
-                'malid':[r['external_id'] for r in anime['resources'] if r['site']=='MyAnimeList'][0]
-            }
-        }
-    
-
-def filter_download_data(data: List[AnimeThemeAnime]) -> List[DownloadData]:
-    """
-    Sorts themes and returns List[DownloadData].
-    """
     out = []
-    for anime in data:
-        out.extend(parse_anime(anime))
     
+    songs = set()
+    for anime in data:
+        
+        last_group = None
+        for tracknumber,theme in enumerate(anime['themes']):
+            # remove unwanted tags in song title (feat and brackets)
+            match = FEATURED_RE.match(theme['song']['title'])
+            theme['song']['title'],featured,comments,version = match.groups()
+
+            # filtering:
+            # groups (for example dubs)
+            if last_group is not None and theme['group']!=last_group:
+                continue 
+            else:
+                last_group = theme['group']
+            # video tags
+            best = pick_best_entry(theme)
+            if best is None:
+                continue
+            entry,video = best
+            # copies
+            if OPTIONS['filter']['no_copy']:
+                if theme['song']['title'] in songs:
+                    continue
+                else:
+                    songs.add(theme['song']['title'])
+            
+            # fix some problems
+            video['link'] = video['link'].replace('https://v.staging.animethemes.moe','https://animethemes.moe/video')
+            entry['version'] = entry['version'] if entry['version'] else 1
+            series = [series['name'] for series in anime['series']]
+            # add to all the songs
+            if OPTIONS['filter']['no_copy']: songs.add(theme['song']['title'])
+            # get video path
+            videopath,audiopath = generate_path(anime,theme,entry,video)
+            out.append({
+                'url': video['link'],
+                'video_path': videopath,
+                'audio_path': audiopath,
+                'metadata': {
+                    # anime
+                    'series': series[0] if len(series)==1 else anime['name'], # mashups are it's own thing (ie isekai quarter)
+                    'album': anime['name'], # discs should be numbered,
+                    'year': anime['year'],
+                    'track': f"{tracknumber+1}/{len(anime['themes'])}", # an ID3 "track/total" syntax
+                    'coverarts': [i['link'] for i in anime['images']][::-1],
+                    # theme
+                    'title': theme['song']['title'],
+                    'artists': [artist['name'] for artist in theme['song']['artists']],
+                    'themetype': theme['slug'],
+                    # entry
+                    'version': entry['version'],
+                    'notes': entry['notes'],
+                    # video
+                    'resolution': video['resolution'],
+                    'videoid': video['id'],
+                    'filesize': video['size'],
+                    # const
+                    'genre': [145], # anime
+                    'encodedby': 'animethemes.moe',
+                    'cgroup': 'anime theme', # content group
+                    # data pulled from filename
+                    'file_featured':featured,
+                    'file_comments':comments,
+                    'file_version':version
+                },
+                'info': {
+                    'malid':[r['external_id'] for r in anime['resources'] if r['site']=='MyAnimeList'][0]
+                }
+            })
     return out
+
 
 def get_download_data(username: str, anilist: bool = False, animelist_args={}) -> List[DownloadData]:
     """
@@ -250,7 +256,7 @@ def get_download_data(username: str, anilist: bool = False, animelist_args={}) -
     """
     measure = Measure()
     raw = get_animethemes(username, anilist, **animelist_args)
-    data = filter_download_data(raw)
+    data = parse_download_data(raw)
     logger.debug(f'Got {len(data)} themes from {len(raw)} anime.')
     logger.info(f'[get] Got all download data ({len(data)} entries) in {measure()}s.')
     return data
