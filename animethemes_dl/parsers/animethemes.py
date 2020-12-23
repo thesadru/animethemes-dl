@@ -14,7 +14,7 @@ from typing import Dict, Iterable, List, Optional, Tuple, Union
 from pySmartDL.utils import get_random_useragent
 from requests import Session
 
-from ..errors import AnimeThemesTimeout
+from ..errors import AnilistException, AnimeThemesTimeout
 from ..models.animethemes import AnimeThemeAnime
 from ..options import OPTIONS
 from .utils import Measure
@@ -32,7 +32,7 @@ if not isdir(TEMPDIR):
 
 logger = logging.getLogger('animethemes-dl')
 
-def api_search(title: str) -> Union[Dict[str,List[AnimeThemeAnime]],AnimeThemesTimeout]:
+def api_search(title: str) -> Dict[str,List[AnimeThemeAnime]]:
     """
     Requests a search from the api.
     """
@@ -40,25 +40,21 @@ def api_search(title: str) -> Union[Dict[str,List[AnimeThemeAnime]],AnimeThemesT
     if r.status_code == 200:
         return r.json()
     elif r.status_code == 429:
-        return AnimeThemesTimeout('Got 429 from animethemes.moe.')
+        raise AnimeThemesTimeout('Got 429 error from animethemes.moe, please wait 30s to get the rest of entries.')
 
-def make_anime_request(title: str) -> Union[List[AnimeThemeAnime],AnimeThemesTimeout]:
+def make_anime_request(title: str) -> List[AnimeThemeAnime]:
     """
     Requests an anime search with a title.
     Strips out unexpected characters.
     """
     title = title.split('(')[0] # remove (TV) and (<year>)
     anime = api_search(title)
-    if isinstance(anime,AnimeThemesTimeout):
-        return anime
-    elif anime:
+    if anime:
         return anime['anime']
     
     title = ''.join(i for i in title if not i.isdigit()) # remove numbers
     anime = api_search(title)['anime']
-    if isinstance(anime,AnimeThemesTimeout):
-        return anime
-    elif anime:
+    if anime:
         return anime['anime']
 
 def get_malid(anime: AnimeThemeAnime) -> int:
@@ -85,8 +81,7 @@ def request_anime(animentry: Tuple[int,str]) -> Tuple[Tuple[int,str],Optional[An
     """
     malid,title = animentry
     anime = make_anime_request(title)
-    if not isinstance(anime,AnimeThemesTimeout):
-        anime = pick_best_anime(malid,title,anime)
+    anime = pick_best_anime(malid,title,anime)
     return animentry,anime
 
 def run_executor(animelist: List[Tuple[int,str]], progressbar: str='') -> Iterable[AnimeThemeAnime]:
@@ -95,14 +90,15 @@ def run_executor(animelist: List[Tuple[int,str]], progressbar: str='') -> Iterab
     """
     measure = Measure()
     with ThreadPoolExecutor(MAXWORKERS) as executor:
-        i=0
-        for i,(animentry,anime) in enumerate(executor.map(request_anime,animelist),1):
-            if isinstance(anime,AnimeThemesTimeout):
-                break
-            if progressbar:
-                print(progressbar%(i,len(animelist)),end='\r')
-            if anime:
-                yield anime
+        i = 0
+        try:
+            for i,(animentry,anime) in enumerate(executor.map(request_anime,animelist),1):
+                if progressbar:
+                    print(progressbar%(i,len(animelist)),end='\r')
+                if anime:
+                    yield anime
+        except AnimeThemesTimeout as e:
+            logger.error(e.args[0])
     
     if progressbar: logger.info(f'[get] Got {i} entries from animethemes in {measure()}s.')
 
@@ -135,9 +131,10 @@ def fetch_animethemes(animelist: List[Tuple[int,str]]) -> List[AnimeThemeAnime]:
         animethemes.extend(run_executor(animelist,progressbar))
     else:
         animethemes = list(run_executor(animelist,progressbar))
-        with open(TEMPFILE,'w') as file:
-            logger.debug(f'Storing animethemes data in {TEMPFILE}')
-            json.dump(animethemes,file)
+    
+    with open(TEMPFILE,'w') as file:
+        logger.debug(f'Storing animethemes data in {TEMPFILE}')
+        json.dump(animethemes,file)
     
     return animethemes
 
