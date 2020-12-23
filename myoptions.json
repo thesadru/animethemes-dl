@@ -3,7 +3,8 @@
         "username": "sadru"
     },
     "filter": {
-        "smart": true
+        "smart": true,
+        "no_copy": true
     },
     "download": {
         "filename": "%(anime_filename)s-%(theme_slug)s.%(video_filetype)s",
