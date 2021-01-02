@@ -79,6 +79,8 @@ class AnimeThemeAnime(AnimeThemeDict):
     series: List[AnimeThemeSerie]
     resources: List[AnimeThemeResource]
     images: List[AnimeThemeImage]
+    
+    _fetched_at: int
 
 if __name__ == "__main__":
     from ..parsers.animethemes import fetch_animethemes

@@ -89,18 +89,32 @@ def run_executor(animelist: List[Tuple[int,str]], progressbar: str='') -> Iterab
     Goes thorugh anime entries and yields their api returns.
     """
     measure = Measure()
+    total_fetched = 0
+    total_failed = 0
+    total_expected = len(animelist)
+    
     with ThreadPoolExecutor(MAXWORKERS) as executor:
-        i = 0
         try:
-            for i,(animentry,anime) in enumerate(executor.map(request_anime,animelist),1):
-                if progressbar:
-                    print(progressbar%(i,len(animelist)),end='\r')
+            for animentry,anime in executor.map(request_anime,animelist):
                 if anime:
+                    total_fetched += 1
+                    anime['_fetched_at'] = time.time()
                     yield anime
+                else:
+                    total_failed += 1
+                    
+                if progressbar:
+                    print(progressbar%(total_fetched+total_failed,total_expected),end='\r')
+                
         except AnimeThemesTimeout as e:
             logger.error(e.args[0])
+        except Exception as e:
+            logger.exception(e)
     
-    if progressbar: logger.info(f'[get] Got {i} entries from animethemes in {measure()}s.')
+    if progressbar: logger.info(
+        f'[get] Got {total_fetched}/{total_expected}' + 
+        f'{f" (-{total_failed} unfindable) " if total_failed else " "}' + 
+        f'entries from animethemes in {measure()}s.')
 
 def pick_needed(animelist: List[Tuple[int,str]]) -> Tuple[List[Tuple[int,str]],List[AnimeThemeAnime]]:
     """
@@ -108,12 +122,12 @@ def pick_needed(animelist: List[Tuple[int,str]]) -> Tuple[List[Tuple[int,str]],L
     """
     logger.debug(f'Loading animethemes data from {TEMPFILE}')
     animethemes = []
-    animelist = {i[0]:i[1] for i in animelist}
+    animelist = dict(animelist)
     
     with open(TEMPFILE,'r') as file:
         for anime in json.load(file):
             malid = get_malid(anime)
-            if malid in animelist:
+            if malid in animelist and time.time()-anime['_fetched_at'] <= OPTIONS['download']['max_animethemes_age']:
                 animethemes.append(anime)
                 del animelist[malid]
     
@@ -125,8 +139,7 @@ def fetch_animethemes(animelist: List[Tuple[int,str]]) -> List[AnimeThemeAnime]:
     Can show progress with `show_progress` string. Formats with % current,total.
     """
     progressbar = "[^] %s/%s" if logger.level<=logging.INFO else ""
-    tempfile_exists = isfile(TEMPFILE) and time.time()-getmtime(TEMPFILE) <= OPTIONS['download']['max_animethemes_age']
-    if tempfile_exists:
+    if isfile(TEMPFILE) and time.time()-getmtime(TEMPFILE) <= OPTIONS['download']['max_animethemes_age']:
         animelist,animethemes = pick_needed(animelist)
         animethemes.extend(run_executor(animelist,progressbar))
     else:

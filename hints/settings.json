@@ -12,6 +12,7 @@
     },
     "filter": {
         "smart": false,
+        "no_copy": false,
         "spoiler": null,
         "nsfw": null,
         "resolution": 0,
