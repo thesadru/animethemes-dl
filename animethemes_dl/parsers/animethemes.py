@@ -6,18 +6,18 @@ import json
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
-from os import makedirs
+from os import makedirs, remove
 from os.path import getmtime, isdir, isfile, join
 from tempfile import gettempdir
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple
 
 from pySmartDL.utils import get_random_useragent
 from requests import Session
 
-from ..errors import AnilistException, AnimeThemesTimeout
+from ..errors import AnimeThemesTimeout
 from ..models.animethemes import AnimeThemeAnime
 from ..options import OPTIONS
-from .utils import Measure
+from .utils import Measure, remove_bracket, simplify_title, add_honorific_dashes
 
 URL = "https://staging.animethemes.moe/api/search?q={}"
 MAXWORKERS = 5
@@ -41,21 +41,21 @@ def api_search(title: str) -> Dict[str,List[AnimeThemeAnime]]:
         return r.json()
     elif r.status_code == 429:
         raise AnimeThemesTimeout('Got 429 error from animethemes.moe, please wait 30s to get the rest of entries.')
+    else:
+        r.raise_for_status()
 
 def make_anime_request(title: str) -> List[AnimeThemeAnime]:
     """
     Requests an anime search with a title.
     Strips out unexpected characters.
     """
-    title = title.split('(')[0] # remove (TV) and (<year>)
-    anime = api_search(title)
-    if anime:
-        return anime['anime']
+    for func in (remove_bracket,simplify_title,add_honorific_dashes):
+        title = func(title)
+        anime = api_search(title)['anime']
+        if anime:
+            return anime
     
-    title = ''.join(i for i in title if not i.isdigit()) # remove numbers
-    anime = api_search(title)['anime']
-    if anime:
-        return anime['anime']
+    return []
 
 def get_malid(anime: AnimeThemeAnime) -> int:
     """
@@ -69,9 +69,9 @@ def pick_best_anime(malid: int, title: str, animes: List[AnimeThemeAnime]) -> Op
     """
     Goes through animes returned by api and returns the correct one.
     """
-    for theme in animes:
-        if malid == get_malid(theme):
-            return theme
+    for anime in animes:
+        if malid == get_malid(anime):
+            return anime
     return None
 
 def request_anime(animentry: Tuple[int,str]) -> Tuple[Tuple[int,str],Optional[AnimeThemeAnime]]:
@@ -80,8 +80,8 @@ def request_anime(animentry: Tuple[int,str]) -> Tuple[Tuple[int,str],Optional[An
     Returns anime,themes
     """
     malid,title = animentry
-    anime = make_anime_request(title)
-    anime = pick_best_anime(malid,title,anime)
+    animes = make_anime_request(title)
+    anime = pick_best_anime(malid,title,animes)
     return animentry,anime
 
 def run_executor(animelist: List[Tuple[int,str]], progressbar: str='') -> Iterable[AnimeThemeAnime]:
@@ -98,11 +98,17 @@ def run_executor(animelist: List[Tuple[int,str]], progressbar: str='') -> Iterab
             for animentry,anime in executor.map(request_anime,animelist):
                 if anime:
                     total_fetched += 1
-                    anime['_fetched_at'] = time.time()
-                    yield anime
                 else:
                     total_failed += 1
-                    
+                    anime = {
+                        'created_at':None,'updated_at':None, # invalid created at means that there's no entry in the API
+                        'title':animentry[1],
+                        'resources':[{'site':'MyAnimeList','external_id':animentry[0]}]
+                    } 
+                
+                anime['_fetched_at'] = time.time()
+                yield anime
+                
                 if progressbar:
                     print(progressbar%(total_fetched+total_failed,total_expected),end='\r')
                 
@@ -113,7 +119,7 @@ def run_executor(animelist: List[Tuple[int,str]], progressbar: str='') -> Iterab
     
     if progressbar: logger.info(
         f'[get] Got {total_fetched}/{total_expected}' + 
-        f'{f" (-{total_failed} unfindable) " if total_failed else " "}' + 
+        f'{f" ({total_failed} unavalible) " if total_failed else " "}' + 
         f'entries from animethemes in {measure()}s.')
 
 def pick_needed(animelist: List[Tuple[int,str]]) -> Tuple[List[Tuple[int,str]],List[AnimeThemeAnime]]:
@@ -141,7 +147,8 @@ def fetch_animethemes(animelist: List[Tuple[int,str]]) -> List[AnimeThemeAnime]:
     progressbar = "[^] %s/%s" if logger.level<=logging.INFO else ""
     if isfile(TEMPFILE) and time.time()-getmtime(TEMPFILE) <= OPTIONS['download']['max_animethemes_age']:
         animelist,animethemes = pick_needed(animelist)
-        animethemes.extend(run_executor(animelist,progressbar))
+        if animelist:
+            animethemes.extend(run_executor(animelist,progressbar))
     else:
         animethemes = list(run_executor(animelist,progressbar))
     
@@ -149,7 +156,7 @@ def fetch_animethemes(animelist: List[Tuple[int,str]]) -> List[AnimeThemeAnime]:
         logger.debug(f'Storing animethemes data in {TEMPFILE}')
         json.dump(animethemes,file)
     
-    return animethemes
+    return [anime for anime in animethemes if anime['created_at'] is not None] # remove unexisting api entries
 
 if __name__ == "__main__":
     from .myanimelist import get_mal
