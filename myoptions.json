@@ -11,7 +11,7 @@
         "audio_folder": "C:/Users/D/Music/animethemes/audio",
         "video_folder": "C:/Users/D/Music/animethemes/video",
         "no_redownload": true,
-        "timeout": 15
+        "update": true
     },
     "coverart": {
         "resolution": 2,

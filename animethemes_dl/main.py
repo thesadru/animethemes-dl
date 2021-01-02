@@ -128,9 +128,9 @@ filters.add_argument(
 filters.add_argument(
     '--source',
     default=None,
-    choices=('','DVD','BD'),
+    choices=('','WEB','RAW','BD','DVD','VHS'),
     metavar="TAG",
-    help="The required source. Either DVD or BD."
+    help="The required source. Mostly DVD or BD."
 )
 filters.add_argument(
     '--overlap','--over',
