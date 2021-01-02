@@ -76,8 +76,8 @@ def parse_mal(data: list) -> List[Tuple[int,str]]:
             continue
         
         if ( # invalid date
-            start_date is None or # didn't start
-            datetime.strptime(start_date,'%y-%m-%d') > datetime.now() # didn't start yet
+            start_date is None or start_date.startswith('00-00') or # didn't start
+            datetime.strptime(start_date.replace('00','01'),'%d-%m-%y') > datetime.now() # didn't start yet
         ):
             continue
         

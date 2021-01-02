@@ -2,6 +2,7 @@
 utilities for animethemes_dl.parsers
 """
 import time
+import re
 
 
 def add_url_kwargs(url,kwargs={}):
@@ -9,6 +10,26 @@ def add_url_kwargs(url,kwargs={}):
         return url
     kwargs = '&'.join(f'{k}={v}' for k,v in kwargs.items())
     return url+'?'+kwargs
+
+def remove_bracket(string: str):
+    """
+    removes brackets and stuff in them from strings
+    """
+    return string.replace('[','(').split('(')[0]
+
+def simplify_title(title: str):
+    """
+    Takes in an anime title and returns a simple version.
+    """
+    return ''.join(
+        i for i in title if i.isalpha() or i==' '
+    ).lower().strip()
+
+def add_honorific_dashes(string: str):
+    """
+    Adds dashes "-" in front of honorifics.
+    """
+    return re.sub(r'[^-](san|chan|kun|sama|tan)',r'-\1',string)
 
 class Measure:
     """
