@@ -4,16 +4,15 @@ Download files with DownloadData.
 import logging
 from os import PathLike, makedirs, remove, stat
 from os.path import isfile
-from typing import Tuple, List
+from typing import List, Tuple
 
 from pySmartDL import SmartDL, utils
 
-from animethemes_dl.options import OPTIONS, setOptions
-
 from .errors import BadThemesUrl
 from .models import DownloadData, Options
+from .options import OPTIONS, setOptions
 from .parsers import get_download_data
-from .tools import add_id3_metadata, compress_files, ffmpeg_convert, fix_faulty_url, DLCACHEDIR
+from .tools import DLCACHEDIR, add_id3_metadata, compress_files, ffmpeg_convert, fix_faulty_url
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -166,32 +165,3 @@ def batch_download(options: dict=Options):
     
     if OPTIONS['compression']['root_dir']:
         compress_files(**OPTIONS['compression'])
-
-if __name__ == '__main__':
-    logging.basicConfig(
-        format='%(message)s'
-    )
-    logger.setLevel(logging.DEBUG)
-    batch_download({
-        'animelist':{
-            'username':'sadru',
-            'minscore':9,
-            'minpriority':2
-        },
-        'filter':{
-            'entry': {
-                'spoiler':False
-            }
-        },
-        'download':{
-            'audio_folder':'anime_themes/audio',
-            'video_folder':'anime_themes/video',
-            'no_redownload':True,
-            'coverart': {
-                'resolution': 3,
-                'folder': 'anime_themes/coverarts'
-            },
-            'timeout':15
-        },
-        # 'ffmpeg':'./ffmpeg.exe'
-    })

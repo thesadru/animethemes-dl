@@ -9,7 +9,7 @@
     "download": {
         "filename": "%(anime_filename)s-%(theme_slug)s.%(video_filetype)s",
         "audio_folder": "C:/Users/D/Music/animethemes/audio",
-        "video_folder": null,
+        "video_folder": "C:/Users/D/Music/animethemes/video",
         "no_redownload": true,
         "update": true
     },
