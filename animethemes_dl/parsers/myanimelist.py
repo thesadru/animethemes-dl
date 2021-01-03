@@ -1,6 +1,7 @@
 """
 Gets data from myanimelist.net.
 """
+import json
 import logging
 from datetime import datetime
 from typing import List, Tuple
@@ -8,12 +9,15 @@ from typing import List, Tuple
 import requests
 
 from ..errors import MyanimelistException
-from .utils import Measure, add_url_kwargs
 from ..options import OPTIONS
+from ..tools import get_tempfile_path, cache_is_young_enough
+from .utils import Measure, add_url_kwargs
 
 logger = logging.getLogger('animethemes-dl')
 
 MALURL = 'https://myanimelist.net/animelist/{user}/load.json'
+CACHEFILE = get_tempfile_path('myanimelist.json')
+
 
 def parse_priority(priority: str) -> int:
     """
@@ -90,7 +94,16 @@ def get_mal(username: str, **kwargs) -> List[Tuple[int,str]]:
     Gets a MAL list with a username.
     """
     measure = Measure()
-    raw = get_raw_mal(username, **kwargs)
+    if cache_is_young_enough(CACHEFILE):
+        with open(CACHEFILE) as file:
+            raw = json.load(file)
+    else:
+        raw = get_raw_mal(username, **kwargs)
+    
+    with open(CACHEFILE,'w') as file:
+        logger.debug(f'Storing MyAnimeList data in {CACHEFILE}')
+        json.dump(raw,file)
+    
     titles = parse_mal(raw)
     logger.info(f'[get] Got data from MAL in {measure()}s.')
     return titles

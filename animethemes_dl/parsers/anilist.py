@@ -1,6 +1,7 @@
 """
 Gets data from anilist.co.
 """
+import json
 import logging
 from datetime import datetime
 from typing import List, Tuple
@@ -8,8 +9,9 @@ from typing import List, Tuple
 import requests
 
 from ..errors import AnilistException
-from .utils import Measure
 from ..options import OPTIONS
+from ..tools import get_tempfile_path, cache_is_young_enough
+from .utils import Measure
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -39,6 +41,7 @@ query userList($user: String) {
   }
 }
 """
+CACHEFILE = get_tempfile_path('anilist.json')
 
 def get_raw_anilist(username: str, query: str=ALQUERY, **vars) -> dict:
     """
@@ -108,7 +111,16 @@ def get_anilist(username: str, **vars) -> List[Tuple[int,str]]:
     Gets an anilist list with a username.
     """
     measure = Measure()
-    raw = get_raw_anilist(username, **vars)
+    if cache_is_young_enough(CACHEFILE):
+        with open(CACHEFILE) as file:
+            raw = json.load(file)
+    else:
+        raw = get_raw_anilist(username, **vars)
+    
+    with open(CACHEFILE,'w') as file:
+        logger.debug(f'Storing AniList data in {CACHEFILE}')
+        json.dump(raw,file)
+    
     data = parse_anilist(raw)
     logger.info(f'[get] Got data from anilist in {measure()}s.')
     return data

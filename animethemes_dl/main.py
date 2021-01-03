@@ -214,10 +214,10 @@ download.add_argument(
     help="Force video ids to be downloaded. It will not be included in filters."
 )
 download.add_argument(
-    '--max-animethemes-age',
+    '--max-cache-age',
     default=2*24*60*60*60,
     type=int,
-    help="How long a requests file can be. Used to optimize getting data, since it's rate limited."
+    help="How long a requests file can be. Used to optimize getting data, since it may be rate limited."
 )
 # =============================================================================
 statuses = parser.add_argument_group('statuses')
@@ -357,7 +357,7 @@ def parse_args(args):
             "ascii": args.ascii,
             "timeout": args.timeout,
             "retries": args.retries,
-            "max_animethemes_age": args.max_animethemes_age,
+            "max_cache_age": args.max_cache_age,
             "force_videos": args.force_videos
         },
         "coverart": {

@@ -32,7 +32,7 @@
         "ascii": false,
         "timeout": 5,
         "retries": 3,
-        "max_animethemes_age": 10368000,
+        "max_cache_age": 10368000,
         "force_videos": []
     },
     "coverart": {
