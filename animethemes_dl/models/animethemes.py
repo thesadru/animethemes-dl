@@ -2,14 +2,16 @@
 Animethemes ap model.
 Copied from the flowchart the dev posted in discord.
 """
-from typing import Literal, TypedDict, List, Union
-from .literals import UrlLike, DateLike, Types, Season, ImageFacet
+from typing import List, Literal, NewType, TypedDict, Union
+
 
 class AnimeThemeDict(TypedDict):
     id: int
-    created_at: DateLike
-    updated_at: DateLike
-    links: TypedDict('links',{'show':UrlLike})
+    created_at: str
+    updated_at: str
+
+class AnimeThemeLinkable(AnimeThemeDict):
+    link: str
 
 class AnimeThemeSynonym(AnimeThemeDict):
     text: str
@@ -23,7 +25,7 @@ class AnimeThemeSong(AnimeThemeDict):
     title: str
     artists: List[AnimeThemeArtist]
 
-class AnimeThemeVideo(AnimeThemeDict):
+class AnimeThemeVideo(AnimeThemeLinkable):
     basename: str
     filename: str
     path: str
@@ -35,7 +37,6 @@ class AnimeThemeVideo(AnimeThemeDict):
     uncen: bool
     source: str
     overlap: str
-    link: UrlLike
 
 class AnimeThemeEntry(AnimeThemeDict):
     version: Union[int,Literal['']]
@@ -46,7 +47,7 @@ class AnimeThemeEntry(AnimeThemeDict):
     videos: List[AnimeThemeVideo]
 
 class AnimeThemeTheme(AnimeThemeDict):
-    type: Types
+    type: Literal['OP','ED']
     sequence: str
     group: str
     slug: str
@@ -57,22 +58,20 @@ class AnimeThemeSerie(AnimeThemeDict):
     name: str
     slug: str
 
-class AnimeThemeResource(AnimeThemeDict):
-    link: UrlLike
+class AnimeThemeResource(AnimeThemeLinkable):
     external_id: int
     site: str
     as_: str
 
-class AnimeThemeImage(AnimeThemeDict):
+class AnimeThemeImage(AnimeThemeLinkable):
     path: str
-    facet: ImageFacet
-    link: UrlLike
+    facet: Literal['Large Cover', 'Small Cover']
 
 class AnimeThemeAnime(AnimeThemeDict):
     name: str
     slug: str
     year: int
-    season: Season
+    season: Literal['Spring','Summer','Fall','Winter']
     synopsis: str
     synonyms: List[AnimeThemeSynonym]
     themes: List[AnimeThemeTheme]
