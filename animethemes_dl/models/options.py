@@ -46,7 +46,7 @@ class DownloadOptions(TypedDict):
     timeout: int
     retries: int
     sort: str
-    max_animethemes_age: int
+    max_cache_age: int
     force_videos: List[int]
 
 class Options(TypedDict):
@@ -92,7 +92,7 @@ DEFAULT = {
         'ascii':False,
         'timeout':5,
         'retries':3,
-        'max_animethemes_age':2*24*60*60*60,
+        'max_cache_age':2*24*60*60*60,
         'force_videos': []
     },
     'coverart':{

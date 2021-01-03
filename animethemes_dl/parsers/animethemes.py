@@ -6,9 +6,6 @@ import json
 import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
-from os import makedirs, remove
-from os.path import getmtime, isdir, isfile, join
-from tempfile import gettempdir
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from pySmartDL.utils import get_random_useragent
@@ -18,6 +15,7 @@ from ..errors import AnimeThemesTimeout
 from ..models.animethemes import AnimeThemeAnime
 from ..options import OPTIONS
 from .utils import Measure, remove_bracket, simplify_title, add_honorific_dashes
+from ..tools import get_tempfile_path, cache_is_young_enough
 
 URL = "https://staging.animethemes.moe/api/search?q={}"
 MAXWORKERS = 5
@@ -25,10 +23,7 @@ session = Session()
 session.headers = {
     "User-Agent":get_random_useragent()
 }
-TEMPDIR = join(gettempdir(),'animethemes-dl')
-TEMPFILE = join(TEMPDIR,'animethemes-dl-data.json')
-if not isdir(TEMPDIR):
-    makedirs(TEMPDIR)
+CACHEFILE = get_tempfile_path('animethemes.json')
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -126,14 +121,14 @@ def pick_needed(animelist: List[Tuple[int,str]]) -> Tuple[List[Tuple[int,str]],L
     """
     Takes in an animelist and returns a tuple of wanted animelist and a list of animethemes.
     """
-    logger.debug(f'Loading animethemes data from {TEMPFILE}')
+    logger.debug(f'Loading animethemes data from {CACHEFILE}')
     animethemes = []
     animelist = dict(animelist)
     
-    with open(TEMPFILE,'r') as file:
+    with open(CACHEFILE) as file:
         for anime in json.load(file):
             malid = get_malid(anime)
-            if malid in animelist and time.time()-anime['_fetched_at'] <= OPTIONS['download']['max_animethemes_age']:
+            if malid in animelist and time.time()-anime['_fetched_at'] <= OPTIONS['download']['max_cache_age']:
                 animethemes.append(anime)
                 del animelist[malid]
     
@@ -145,15 +140,15 @@ def fetch_animethemes(animelist: List[Tuple[int,str]]) -> List[AnimeThemeAnime]:
     Can show progress with `show_progress` string. Formats with % current,total.
     """
     progressbar = "[^] %s/%s" if logger.level<=logging.INFO else ""
-    if isfile(TEMPFILE) and time.time()-getmtime(TEMPFILE) <= OPTIONS['download']['max_animethemes_age']:
+    if cache_is_young_enough(CACHEFILE):
         animelist,animethemes = pick_needed(animelist)
         if animelist:
             animethemes.extend(run_executor(animelist,progressbar))
     else:
         animethemes = list(run_executor(animelist,progressbar))
     
-    with open(TEMPFILE,'w') as file:
-        logger.debug(f'Storing animethemes data in {TEMPFILE}')
+    with open(CACHEFILE,'w') as file:
+        logger.debug(f'Storing animethemes data in {CACHEFILE}')
         json.dump(animethemes,file)
     
     return [anime for anime in animethemes if anime['created_at'] is not None] # remove unexisting api entries

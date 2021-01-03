@@ -13,7 +13,7 @@ from animethemes_dl.options import OPTIONS, setOptions
 from .errors import BadThemesUrl
 from .models import DownloadData, Options
 from .parsers import get_download_data
-from .tools import add_id3_metadata, compress_files, ffmpeg_convert, fix_faulty_url
+from .tools import add_id3_metadata, compress_files, ffmpeg_convert, fix_faulty_url, DLCACHEDIR
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -46,7 +46,7 @@ def download_video(data: DownloadData, use_temp: bool=False):
     Returns destination
     """
     if use_temp:
-        dest = None
+        dest = DLCACHEDIR
     else:
         dest = data['video_path']
     
@@ -84,14 +84,14 @@ def convert_audio(data: DownloadData, video_path: PathLike=None):
     Converts webm video into audio and adds metadata.
     Can force a different video path.
     """
-    data['video_path'] = data['video_path'] or video_path
     try:
-        ffmpeg_convert(data['video_path'],data['audio_path'])
+        ffmpeg_convert(data['video_path'] or video_path, data['audio_path'])
     except KeyboardInterrupt as e:
         # delete unfinished ffmpeg conversions
         if isfile(data['audio_path']):
             remove(data['audio_path'])
         quit(e)
+    
     add_id3_metadata(data['audio_path'],data['metadata'],data['info']['malid'])
 
 def download_theme(data: DownloadData, dlvideo: bool=True, dlaudio:bool=True):
