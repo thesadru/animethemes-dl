@@ -2,7 +2,6 @@ import json
 import logging
 import sys
 
-from ..options import OPTIONS, setOptions
 from . import get_download_data, get_animethemes
 
 if len(sys.argv) < 2:
