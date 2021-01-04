@@ -81,8 +81,3 @@ class AnimeThemeAnime(AnimeThemeDict):
     
     _fetched_at: int
 
-if __name__ == "__main__":
-    from ..parsers.animethemes import fetch_animethemes
-    from ..parsers.myanimelist import get_mal
-    animelist = fetch_animethemes([ get_mal('sadru')[0] ])
-    print(animelist[0]['themes'][0]['entries'][0]['videos'][0]['links']['show'])

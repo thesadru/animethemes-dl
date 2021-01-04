@@ -1,18 +1,16 @@
 """
 Parses data from myanimelist/anilist and themes.moe.
 """
-from typing import List
-from animethemes_dl.options import OPTIONS
 import logging
+from typing import List
 
 from ..models.animethemes import AnimeThemeAnime
-from .anilist import get_anilist
+from .animelist import AniList, MyAnimeList
 from .animethemes import fetch_animethemes
-from .myanimelist import get_mal
 
 logger = logging.getLogger('animethemes-dl')
 
-def get_animethemes(username: str, anilist: bool=False, **animelist_args) -> List[AnimeThemeAnime]:
+def get_animethemes(username: str, anilist: bool=False, **animelist_kwargs) -> List[AnimeThemeAnime]:
     """
     Gets data from themes.moe and myanimelist.net/anilist.co.
     Returns a dictionary of anime themes.
@@ -20,13 +18,13 @@ def get_animethemes(username: str, anilist: bool=False, **animelist_args) -> Lis
     For additional args for myanimelist/anilist, use `animelist_args`.
     """
     if anilist:
-        animelist = get_anilist(username, **animelist_args)
+        animelist = AniList
     else:
-        animelist = get_mal(username, **animelist_args)
-    if any(OPTIONS['animelist']['range']):
-        s,e = OPTIONS['animelist']['range']
-        animelist = animelist[s:e or None]
-    return fetch_animethemes(animelist)
+        animelist = MyAnimeList
+    
+    titles = animelist(**animelist_kwargs).get_titles(username)
+    
+    return fetch_animethemes(titles)
 
 if __name__ == "__main__":
     from pprint import pprint
