@@ -12,7 +12,7 @@ from pySmartDL.utils import get_random_useragent
 from requests import Session
 
 from ..errors import AnimeThemesTimeout
-from ..models.animethemes import AnimeThemeAnime
+from ..models import AnimeThemeAnime
 from ..options import OPTIONS
 from .utils import Measure, remove_bracket, simplify_title, add_honorific_dashes
 from ..tools import get_tempfile_path, cache_is_young_enough
@@ -154,8 +154,8 @@ def fetch_animethemes(animelist: List[Tuple[int,str]]) -> List[AnimeThemeAnime]:
     return [anime for anime in animethemes if anime['created_at'] is not None] # remove unexisting api entries
 
 if __name__ == "__main__":
-    from .myanimelist import get_mal
+    from .animelist import MyAnimeList
     logger.setLevel(logging.DEBUG)
-    animethemes = fetch_animethemes(get_mal('sadru'))
+    animethemes = fetch_animethemes(MyAnimeList().get_titles('sadru'))
     with open('test.json','w') as file:
         json.dump(animethemes,file,indent=4)

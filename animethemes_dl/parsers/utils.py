@@ -1,11 +1,15 @@
 """
 utilities for animethemes_dl.parsers
 """
-import time
 import re
+import time
+from typing import Any
 
 
-def add_url_kwargs(url,kwargs={}):
+def add_url_kwargs(url: str, kwargs: dict[str,Any]={}) -> str:
+    """
+    Adds url kwargs to the end of the url.
+    """
     if not kwargs:
         return url
     kwargs = '&'.join(f'{k}={v}' for k,v in kwargs.items())

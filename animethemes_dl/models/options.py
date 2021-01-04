@@ -9,7 +9,7 @@ class AnimeListOptions(TypedDict):
     anilist: bool
     animelist_args: dict
     minpriority: Literal[0,1,2]
-    minscore: Literal[0,1,2,3,4,5,6,7,8,9]
+    minscore: Literal[0,1,2,3,4,5,6,7,8,9,10]
     range: Tuple[int,int]
 
 class FilterOptions(TypedDict):

@@ -1,13 +1,14 @@
+from animethemes_dl.errors import MyanimelistException
 import logging
 
 from animethemes_dl.options import OPTIONS
 from animethemes_dl.parsers.animethemes import fetch_animethemes
 from animethemes_dl.parsers.dldata import parse_download_data
-from animethemes_dl.parsers.myanimelist import get_mal
+from animethemes_dl.parsers.animelist import MyAnimeList
 
 logger = logging.getLogger('animethemes-dl.test')
 
-raw = fetch_animethemes(get_mal('sadru'))
+raw = fetch_animethemes(MyAnimeList().get_titles('sadru'))
 for f in ('spoiler','nsfw', 'nc', 'subbed', 'lyrics', 'uncen'):
     none = len(parse_download_data(raw))
     for x in (True,False):
