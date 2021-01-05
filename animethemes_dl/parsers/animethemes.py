@@ -4,6 +4,7 @@ Uses ThreadPoolExecutor.map to get data faster on slower connections.
 """
 import json
 import logging
+from os.path import isfile
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Iterable, List, Optional, Tuple
@@ -96,7 +97,7 @@ def run_executor(animelist: List[Tuple[int,str]], progressbar: str='') -> Iterab
                 else:
                     total_failed += 1
                     anime = {
-                        'created_at':None,'updated_at':None, # invalid created at means that there's no entry in the API
+                        'id':None, # invalid id means that there's no entry in the API
                         'title':animentry[1],
                         'resources':[{'site':'MyAnimeList','external_id':animentry[0]}]
                     } 
@@ -126,10 +127,10 @@ def pick_needed(animelist: List[Tuple[int,str]]) -> Tuple[List[Tuple[int,str]],L
     animelist = dict(animelist)
     
     with open(CACHEFILE) as file:
-        for anime in json.load(file):
+        animethemes = sorted(json.load(file),key=lambda x:x['_fetched_at'])
+        for anime in animethemes: # loads sorted data
             malid = get_malid(anime)
             if malid in animelist and time.time()-anime['_fetched_at'] <= OPTIONS['download']['max_cache_age']:
-                animethemes.append(anime)
                 del animelist[malid]
     
     return list(animelist.items()),animethemes        
@@ -140,10 +141,13 @@ def fetch_animethemes(animelist: List[Tuple[int,str]]) -> List[AnimeThemeAnime]:
     Can show progress with `show_progress` string. Formats with % current,total.
     """
     progressbar = "[^] %s/%s" if logger.level<=logging.INFO else ""
-    if cache_is_young_enough(CACHEFILE):
+    if isfile(CACHEFILE):
         animelist,animethemes = pick_needed(animelist)
         if animelist:
-            animethemes.extend(run_executor(animelist,progressbar))
+            animethemes = {get_malid(x):x for x in animethemes} # gets only unique ids
+            for anime in run_executor(animelist,progressbar):
+                animethemes[get_malid(anime)] = anime
+            animethemes = list(animethemes.values())
     else:
         animethemes = list(run_executor(animelist,progressbar))
     
@@ -151,7 +155,7 @@ def fetch_animethemes(animelist: List[Tuple[int,str]]) -> List[AnimeThemeAnime]:
         logger.debug(f'Storing animethemes data in {CACHEFILE}')
         json.dump(animethemes,file)
     
-    return [anime for anime in animethemes if anime['created_at'] is not None] # remove unexisting api entries
+    return [anime for anime in animethemes if anime['id'] is not None] # remove unexisting api entries
 
 if __name__ == "__main__":
     from .animelist import MyAnimeList
