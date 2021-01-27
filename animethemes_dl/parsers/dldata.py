@@ -9,9 +9,8 @@ from os.path import join, realpath, splitext
 from pprint import pprint
 from typing import Dict, Iterable, List, Optional, Tuple
 
-from ..models.animethemes import (AnimeThemeAnime, AnimeThemeEntry,
-                                  AnimeThemeTheme, AnimeThemeVideo)
-from ..models.dldata import DownloadData
+from ..models import (AnimeListSite, AnimeThemeAnime, AnimeThemeEntry,
+                      AnimeThemeTheme, AnimeThemeVideo, DownloadData)
 from ..options import OPTIONS
 from .parser import get_animethemes
 from .utils import Measure
@@ -246,7 +245,7 @@ def parse_download_data(data: List[AnimeThemeAnime]) -> Iterable[DownloadData]:
     return out
 
 
-def get_download_data(username: str, anilist: bool = False, animelist_args={}) -> List[DownloadData]:
+def get_download_data(username: str, site: AnimeListSite, animelist_args={}) -> List[DownloadData]:
     """
     Gets download data from themes.moe and myanimelist.net/anilist.co.
     Returns a list of mirrors, save_paths and id3 tags.
@@ -255,7 +254,7 @@ def get_download_data(username: str, anilist: bool = False, animelist_args={}) -
     For additional args for myanimelist/anilist, use `animelist_args`.
     """
     measure = Measure()
-    raw = get_animethemes(username, anilist, **animelist_args)
+    raw = get_animethemes(username, site, **animelist_args)
     data = parse_download_data(raw)
     logger.debug(f'Got {len(data)} themes from {len(raw)} anime.')
     logger.info(f'[get] Got all download data ({len(data)} entries) in {measure()}s.')

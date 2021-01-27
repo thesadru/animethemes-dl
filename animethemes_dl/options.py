@@ -9,7 +9,7 @@ logger = logging.getLogger('animethemes-dl')
 DEFAULT = {
     'animelist': {
         'username': '',
-        'anilist': False,
+        'site': 'MyAnimeList',
         'animelist_args': {},
         'minpriority':0,
         'minscore':0,

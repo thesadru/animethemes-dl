@@ -7,8 +7,7 @@ import logging
 from os.path import realpath
 from pprint import pformat
 
-from animethemes_dl.parsers.dldata import get_download_data
-
+from .parsers import get_download_data, ANIMELISTSITES
 from .downloader import batch_download
 from .options import OPTIONS, _update_dict
 from .tools import repair
@@ -56,9 +55,10 @@ animelist.add_argument(
     help="Your animelist username."
 )
 animelist.add_argument(
-    '--anilist','--al',
-    action='store_true',
-    help="Use Anilist instead of MyAnimeList"
+    '--site',
+    default='MyAnimeList',
+    choices=ANIMELISTSITES,
+    help="Pick which site to use, only 2 implemented."
 )
 
 animelist.add_argument(
@@ -330,7 +330,7 @@ def parse_args(args):
     {
         "animelist": {
             "username": args.username,
-            "anilist": args.anilist,
+            "site": args.site,
             "animelist_args": args.animelist_args,
             "minpriority": args.minpriority,
             "minscore": args.minscore
@@ -408,7 +408,7 @@ def main():
     if args.repair:
         repair(get_download_data(
             OPTIONS['animelist']['username'],
-            OPTIONS['animelist']['anilist'],
+            OPTIONS['animelist']['site'],
             OPTIONS['animelist']['animelist_args']
         ))
     else:
