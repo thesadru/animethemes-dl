@@ -2,6 +2,7 @@
 File for fetching and parsing data of animelists.
 Made to be extendible with classes.
 """
+from animethemes_dl.models.animelist import AnimeListSite
 import json
 import logging
 from datetime import datetime
@@ -24,6 +25,7 @@ class AnimeListBase:
     url: str
     def __init__(self, **kwargs):
         """Initializes AnimeList fetcher, can take extra settings"""
+        assert self.name in AnimeListSite.__args__
         self.kwargs = kwargs
     
     def fetch_raw(self, username: str) -> Any:
@@ -33,7 +35,7 @@ class AnimeListBase:
         """Parses raw data, returns normalized one."""
         ...
     
-    def filter(self, data: List[AnimeListDict]) -> List[Tuple[int,str]]:
+    def filter(self, data: List[AnimeListDict]) -> List[Tuple[str,int,AnimeListSite]]:
         """
         Filters parsed data, looks at status, score, priority and start date.
         """
@@ -46,11 +48,11 @@ class AnimeListBase:
                 entry['priority'] >= OPTIONS['animelist']['minpriority'] and
                 entry['start_date'] is not None and entry['start_date'] <= date_now
             ): 
-                titles.append((entry['malid'],entry['title']))
+                titles.append((entry['title'],entry['malid'],self.name))
             
         return titles
     
-    def get_titles(self, username: str=...) -> List[Tuple[int,str]]:
+    def get_titles(self, username: str=...) -> List[Tuple[str,int,AnimeListSite]]:
         """
         Gets titles by fetching or loading raw data, then parsing it.
         """
@@ -116,8 +118,8 @@ class MyAnimeList(AnimeListBase):
 
 
 class AniList(AnimeListBase):
-    name = 'AniList'
-    url = 'https://graphql.anilist.co'
+    name = "AniList"
+    url = "https://graphql.anilist.co"
     query = """
 query userList($user: String) {
   MediaListCollection(userName: $user, type: ANIME) {
