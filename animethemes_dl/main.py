@@ -7,8 +7,7 @@ import logging
 from os.path import realpath
 from pprint import pformat
 
-from animethemes_dl.parsers.dldata import get_download_data
-
+from .parsers import get_download_data, ANIMELISTSITES
 from .downloader import batch_download
 from .options import OPTIONS, _update_dict
 from .tools import repair
@@ -56,9 +55,10 @@ animelist.add_argument(
     help="Your animelist username."
 )
 animelist.add_argument(
-    '--anilist','--al',
-    action='store_true',
-    help="Use Anilist instead of MyAnimeList"
+    '--site',
+    default='MyAnimeList',
+    choices=ANIMELISTSITES,
+    help="Pick which site to use, only 2 implemented."
 )
 
 animelist.add_argument(
@@ -93,41 +93,46 @@ animelist_filters.add_argument(
     help="Uses only a set range of an animelist."
 )
 
-tag_filters = parser.add_argument_group('tag filters')
-tag_filters.add_argument(
+filters = parser.add_argument_group('filters')
+filters.add_argument(
     '--smart','--smart-filter',
     action='store_true',
     help="Smart filters out dialogue."
 )
-tag_filters.add_argument(
+filters.add_argument(
+    '--no-copy','--no-copies','--nc',
+    action='store_true',
+    help="Does not download songs with the same name, keeps only the first one."
+)
+filters.add_argument(
     '--required-tags','--rtags',
     default=[],
     metavar="TAGS",
     nargs='+',
     help="Required tags for themes, check README for possible tags."
 )
-tag_filters.add_argument(
+filters.add_argument(
     '--banned-tags','--btags',
     default=[],
     metavar="TAGS",
     nargs='+',
     help="Banned tags for themes, check README for possible tags."
 )
-tag_filters.add_argument(
+filters.add_argument(
     '--min-resolution','--res',
     default=0,
     type=int,
     metavar="INT",
     help="Minimum resolution of video."
 )
-tag_filters.add_argument(
+filters.add_argument(
     '--source',
     default=None,
-    choices=('','DVD','BD'),
+    choices=('','WEB','RAW','BD','DVD','VHS'),
     metavar="TAG",
-    help="The required source. Either DVD or BD."
+    help="The required source. Mostly DVD or BD."
 )
-tag_filters.add_argument(
+filters.add_argument(
     '--overlap','--over',
     default=None,
     nargs='+',
@@ -209,10 +214,10 @@ download.add_argument(
     help="Force video ids to be downloaded. It will not be included in filters."
 )
 download.add_argument(
-    '--max-animethemes-age',
+    '--max-cache-age',
     default=2*24*60*60*60,
     type=int,
-    help="How long a requests file can be. Used to optimize getting data, since it's rate limited."
+    help="How long a requests file can be. Used to optimize getting data, since it may be rate limited."
 )
 # =============================================================================
 statuses = parser.add_argument_group('statuses')
@@ -325,12 +330,14 @@ def parse_args(args):
     {
         "animelist": {
             "username": args.username,
-            "anilist": args.anilist,
+            "site": args.site,
             "animelist_args": args.animelist_args,
             "minpriority": args.minpriority,
             "minscore": args.minscore
         },
         "filter": {
+            'smart': args.smart,
+            'no_copy': args.no_copy,
             'spoiler': filters['spoiler'],
             'nsfw': filters['nsfw'],
             'resolution': args.min_resolution,
@@ -350,7 +357,7 @@ def parse_args(args):
             "ascii": args.ascii,
             "timeout": args.timeout,
             "retries": args.retries,
-            "max_animethemes_age": args.max_animethemes_age,
+            "max_cache_age": args.max_cache_age,
             "force_videos": args.force_videos
         },
         "coverart": {
@@ -401,7 +408,7 @@ def main():
     if args.repair:
         repair(get_download_data(
             OPTIONS['animelist']['username'],
-            OPTIONS['animelist']['anilist'],
+            OPTIONS['animelist']['site'],
             OPTIONS['animelist']['animelist_args']
         ))
     else:

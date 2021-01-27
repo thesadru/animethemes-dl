@@ -3,10 +3,9 @@ Audio tools.
 Includes ffmpeg conversion and id3 tagging.
 """
 import logging
-from mimetypes import guess_extension, guess_type
-import mimetypes
+from mimetypes import guess_type
 from os import PathLike, system, listdir
-from os.path import basename, isfile, join, splitext
+from os.path import basename, isfile, join
 from typing import Optional, Tuple
 
 import requests
@@ -14,9 +13,9 @@ from mutagen.id3 import ID3, ID3TimeStamp
 from mutagen.id3._frames import *
 
 from ..errors import FfmpegException
-from ..models import Metadata, UrlLike
+from ..models import Metadata
 from ..options import OPTIONS
-from ..parsers.anilist import ALURL
+from pySmartDL.utils import get_random_useragent
 
 logger = logging.getLogger('animethemes-dl')
 
@@ -57,7 +56,7 @@ def get_coverart(metadata: Metadata, malid: int) -> Tuple[bytes,str,str]:
         mimetype = guess_type(coverart_file)
     else:
         url = metadata['coverarts'][min(resolution, len(metadata['coverarts'])-1)]
-        data = requests.get(url).content
+        data = requests.get(url,headers={'User-Agent':get_random_useragent()}).content
         mimetype = guess_type(url)
         if coverart_folder:
             with open(coverart_file,'wb') as file:

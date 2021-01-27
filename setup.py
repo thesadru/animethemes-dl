@@ -8,6 +8,7 @@ setup(
     version='2.2.0',
     author='thesadru',
     author_email='dan0.suman@gmail.com',
+    license='MIT License',
     description='Downloads anime themes from animethemes.moe. Supports Batch download and animelist connecting.',
     packages=find_packages(),
     classifiers=[
