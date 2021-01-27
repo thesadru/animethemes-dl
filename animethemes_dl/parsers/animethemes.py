@@ -14,22 +14,21 @@ Parses the animethemes api, getting data by title.
 - save data to cache
 - return animethemes
 """
-from animethemes_dl.models.animelist import AnimeListSite
 import json
 import logging
 from os.path import isfile
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from pySmartDL.utils import get_random_useragent
 from requests import Session
 
 from ..errors import AnimeThemesTimeout
-from ..models import AnimeThemeAnime
+from ..models import AnimeThemeAnime, AnimeListSite
 from ..options import OPTIONS
 from .utils import Measure, remove_bracket, simplify_title, add_honorific_dashes
-from ..tools import get_tempfile_path, cache_is_young_enough
+from ..tools import get_tempfile_path
 
 URL = "https://staging.animethemes.moe/api/search?q={}"
 MAXWORKERS = 5

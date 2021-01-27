@@ -2,7 +2,6 @@
 File for fetching and parsing data of animelists.
 Made to be extendible with classes.
 """
-from animethemes_dl.models.animelist import AnimeListSite
 import json
 import logging
 from datetime import datetime
@@ -13,7 +12,7 @@ from typing import Any, List, Tuple, Type
 import requests
 
 from ..errors import AnimeListException
-from ..models import AnimeListDict
+from ..models import AnimeListDict, AnimeListSite
 from ..options import OPTIONS
 from ..tools import cache_is_young_enough, get_tempfile_path
 from .utils import Measure, add_url_kwargs
@@ -25,7 +24,7 @@ class AnimeListBase:
     url: str
     def __init__(self, **kwargs):
         """Initializes AnimeList fetcher, can take extra settings"""
-        assert self.name in AnimeListSite.__args__
+        assert self.name in ANIMELISTSITES
         self.kwargs = kwargs
     
     def fetch_raw(self, username: str) -> Any:
@@ -188,3 +187,5 @@ query userList($user: String) {
         
         return titles
 
+
+ANIMELISTSITES = {"AniList":AniList, "MyAnimeList": MyAnimeList}

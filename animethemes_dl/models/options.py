@@ -3,10 +3,11 @@ Option data type and option defaults.
 """
 from os import PathLike
 from typing import Optional,List,Tuple,TypedDict,Literal
+from .animelist import AnimeListSite
 
 class AnimeListOptions(TypedDict):
     username: str
-    anilist: bool
+    site: AnimeListSite
     animelist_args: dict
     minpriority: Literal[0,1,2]
     minscore: Literal[0,1,2,3,4,5,6,7,8,9,10]

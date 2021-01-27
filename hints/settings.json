@@ -1,7 +1,7 @@
 {
     "animelist": {
         "username": "",
-        "anilist": false,
+        "site": "MyAnimeList",
         "animelist_args": {},
         "minpriority": 0,
         "minscore": 0,

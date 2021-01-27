@@ -157,7 +157,7 @@ def batch_download(options: dict=Options):
     logger.info('[progress] initializing animethemes-dl')
     data = get_download_data(
         OPTIONS['animelist']['username'],
-        OPTIONS['animelist']['anilist'],
+        OPTIONS['animelist']['site'],
         OPTIONS['animelist']['animelist_args']
     )
     batch_download_themes(data)
