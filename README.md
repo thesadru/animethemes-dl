@@ -29,7 +29,7 @@ The script should raise errors in case you pass in an improper arg, but sometime
 You must set a username and a save folder.
 
 ### animelist
-You must set a username. By default usernames are assumed to be a MAL user, you can use anilist instead with `--anilist`.
+You must set a username. By default usernames are assumed to be a MAL user, you can use a different site with `--site`.
 
 `--animelist-args` can be:
 - url args for MAL ``
@@ -45,6 +45,8 @@ There are filters for minimum score and priority.
 
 ### tag filters
 By default, you can just use a `--smart` filter, that takes out all the dialogue. This works by removing all themes that contains a part of the episode and spoilers at the same time. This works 95% of the time.
+
+Since animethemes can have a single song bound to multiple anime, `--no-copy` filters them.
 
 You can set `--banned-tags` or `--required-tags`. These will take multiple tags, possible tags are:
 | Tag     | Meaning                                       |
@@ -120,7 +122,7 @@ Downloader timeout can be changed with `--timeout` and max amount of retries wit
 Sometimes when using filters a video that you wanted gets filtered out. you can `--force-videos` and keep them this way.
 > re:zero for example has lots of unique EDs, they have an episode in the background, but like 2 of them have no dialogue, which is fine keeping imo.
 
-Data from animethemes is sending a lot of requests at the same time, so to reduce stress on the servers, the data is saved in a temp folder. You can change it's max age with `--max-animethemes-age`.
+Data from animethemes is sending a lot of requests at the same time, so to reduce stress on the servers, the data is saved in a temp folder. You can change it's max age with `--max-cache-age`.
 
 ### statuses
 You can download anime that you have `--on-hold`,`--dropped` or `--planned`.
@@ -152,14 +154,18 @@ The default options are:
 {
     "animelist": {
         "username": "",
-        "anilist": false,
+        "site": "MyAnimeList",
         "animelist_args": {},
         "minpriority": 0,
         "minscore": 0,
-        "range": [0,0]
+        "range": [
+            0,
+            0
+        ]
     },
     "filter": {
         "smart": false,
+        "no_copy": false,
         "spoiler": null,
         "nsfw": null,
         "resolution": 0,
@@ -179,7 +185,7 @@ The default options are:
         "ascii": false,
         "timeout": 5,
         "retries": 3,
-        "max_animethemes_age": 10368000,
+        "max_cache_age": 10368000,
         "force_videos": []
     },
     "coverart": {
@@ -199,7 +205,7 @@ The default options are:
     "ignore_prompts": false
 }
 ```
-> You can generate the options with `python -m animethemes_dl.models.options`.
+> You can generate the options with `python -m animethemes_dl.options`.
 
 ## code documentation
 The code uses the module `models` that contains models of `typing.TypedDict`.
