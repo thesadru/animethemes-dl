@@ -1,33 +1,21 @@
 """
 Parses data from myanimelist/anilist and themes.moe.
+Mostly just a dummy file, that holds a single functions.
 """
 from typing import List
-from animethemes_dl.options import OPTIONS
-import logging
 
-from ..models.animethemes import AnimeThemeAnime
-from .anilist import get_anilist
+from ..models import AnimeThemeAnime, AnimeListSite
+from .animelist import ANIMELISTSITES
 from .animethemes import fetch_animethemes
-from .myanimelist import get_mal
 
-logger = logging.getLogger('animethemes-dl')
 
-def get_animethemes(username: str, anilist: bool=False, **animelist_args) -> List[AnimeThemeAnime]:
+def get_animethemes(username: str, site: AnimeListSite, **animelist_kwargs) -> List[AnimeThemeAnime]:
     """
     Gets data from themes.moe and myanimelist.net/anilist.co.
     Returns a dictionary of anime themes.
     To use anilist.co instead of myanimelist.net, use `anilist`.
     For additional args for myanimelist/anilist, use `animelist_args`.
     """
-    if anilist:
-        animelist = get_anilist(username, **animelist_args)
-    else:
-        animelist = get_mal(username, **animelist_args)
-    if any(OPTIONS['animelist']['range']):
-        s,e = OPTIONS['animelist']['range']
-        animelist = animelist[s:e or None]
-    return fetch_animethemes(animelist)
-
-if __name__ == "__main__":
-    from pprint import pprint
-    pprint(get_animethemes('sadru'))
+    animelist = ANIMELISTSITES[site]
+    titles = animelist(**animelist_kwargs).get_titles(username)
+    return fetch_animethemes(titles)

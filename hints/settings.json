@@ -1,7 +1,7 @@
 {
     "animelist": {
         "username": "",
-        "anilist": false,
+        "site": "MyAnimeList",
         "animelist_args": {},
         "minpriority": 0,
         "minscore": 0,
@@ -12,6 +12,7 @@
     },
     "filter": {
         "smart": false,
+        "no_copy": false,
         "spoiler": null,
         "nsfw": null,
         "resolution": 0,
@@ -31,7 +32,7 @@
         "ascii": false,
         "timeout": 5,
         "retries": 3,
-        "max_animethemes_age": 10368000,
+        "max_cache_age": 10368000,
         "force_videos": []
     },
     "coverart": {
