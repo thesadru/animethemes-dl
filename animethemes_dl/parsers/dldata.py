@@ -37,7 +37,7 @@ FEATURED_RE = re.compile(r"""^
 )?
 $""",re.VERBOSE)
 
-def is_entry_wanted(entry: AnimeThemeEntry):
+def is_entry_wanted(entry: AnimeThemeEntry) -> bool:
     """
     Determines wheter all the tags in the entry are the same as in OPTIONS
     """
@@ -47,7 +47,7 @@ def is_entry_wanted(entry: AnimeThemeEntry):
             return False
     return True
 
-def is_video_wanted(video: AnimeThemeVideo):
+def is_video_wanted(video: AnimeThemeVideo) -> bool:
     """
     Determines wheter all the tags in the entry are the same as in OPTIONS
     """
@@ -71,8 +71,8 @@ def get_amount_episodes(episodes: str) -> int:
     a = 0
     for ep in episodes.split(', '):
         if '-' in ep:
-            index = ep.index('-')
-            a += int(ep[:index])-int(ep[index+1:])
+            start,end = ep.split('-')
+            a += int(end)-int(start)
         else:
             a += int(ep)
     return a
@@ -86,8 +86,7 @@ def strip_illegal_chars(filename: str) -> str:
     else:
         return ''.join(i for i in filename if i not in FILENAME_BANNED)
 
-def get_formatter(**kwargs) -> (
-        Dict[str,str]):
+def get_formatter(**kwargs) -> Dict[str,str]:
     """
     Generates a formatter dict used for formatting filenames.
     Takes in kwargs of Dict[str,Any].
@@ -134,8 +133,7 @@ def generate_path(
     
     return video,audio
 
-def pick_best_entry(theme: AnimeThemeTheme) -> (
-        Optional[Tuple[AnimeThemeEntry,AnimeThemeVideo]]):
+def pick_best_entry(theme: AnimeThemeTheme) -> Optional[Tuple[AnimeThemeEntry,AnimeThemeVideo]]:
     """
     Returns the best entry and video based on OPTIONS.
     Returns None if no entry/video is wanted
@@ -165,10 +163,10 @@ def pick_best_entry(theme: AnimeThemeTheme) -> (
         logger.debug(f"removed {theme['song']['title']}/{theme['slug']} ({theme['id']})")
         return None
 
-def parse_download_data(data: List[AnimeThemeAnime]) -> Iterable[DownloadData]:
+def parse_download_data(data: List[AnimeThemeAnime]) -> List[DownloadData]:
     """
-    Parses an anime and yields download data.
-    Returns None if invalid.
+    Parses a list of animethemes api returns for anime.
+    Returns download data.
     """
     out = []
     

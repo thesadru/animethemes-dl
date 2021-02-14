@@ -20,8 +20,8 @@ This project was made for batch downloading themes from anime you have watched, 
 
 # usage in command line
 make sure you have ffmpeg and python installed
-possible commands: `animethemes-dl.bat` in windows, `animethemes-dl.sh` in linux. `animethemes-dl` if installed with pip. `python -m animethemes-dl` with python.
-> All of these commands will be reffered to as `animethemes-dl` in the documentation.
+To run in console use `animethemes-dl` if installed with pip. `python -m animethemes-dl` if you have cloned the repository.
+> These commands will be reffered to as `animethemes-dl` in the documentation.
 
 ## command line documentation
 The script should raise errors in case you pass in an improper arg, but sometimes an error won't be raised if the error is not obvious, therefore make sure you read the documentation before running it.
@@ -34,7 +34,7 @@ You must set a username. By default usernames are assumed to be a MAL user, you 
 `--animelist-args` can be:
 - url args for MAL ``
 - `query` and `variables` for POST request for AniList
-> `--animelist-args` are passed as a `<key>:<value>` pairs, for example: `sort1=1,sort2=14`
+> `--animelist-args` are passed as a `<key>=<value>` pairs, for example: `sort1=1,sort2=14`
 
 ### animelist filters
 There are filters for minimum score and priority.
@@ -73,7 +73,7 @@ Some themes contain a part of the episode. You can set a `--overlap` to show onl
 | Over       | Part of episode is over the video.          |
 | Transition | Part of episode transitions into the video. |
 | None       | No dialogue in video.                       |
-> Transitions are fairly fine, they don't even have dialogue most of the time, I recommend just banning `Over`
+> If you're only looking to remove dialogue, transitions are fairly fine. They don't even have dialogue most of the time, I recommend just banning `Over`
 
 ### download
 Downloads are by default disabled for both video and audio.
@@ -120,7 +120,7 @@ You can add a coverart to audio files with `--coverart`, `--coverart` takes in a
 Downloader timeout can be changed with `--timeout` and max amount of retries with `--retries`.
 
 Sometimes when using filters a video that you wanted gets filtered out. you can `--force-videos` and keep them this way.
-> re:zero for example has lots of unique EDs, they have an episode in the background, but like 2 of them have no dialogue, which is fine keeping imo.
+> re:zero for example has lots of unique EDs, but they often have an overlay, meaning smart filter will remove them.
 
 Data from animethemes is sending a lot of requests at the same time, so to reduce stress on the servers, the data is saved in a temp folder. You can change it's max age with `--max-cache-age`.
 
@@ -136,7 +136,7 @@ You can choose the `--compress-format`, this must be a format allowed by `shutil
 Additionally you can set the `--compress-base`.
 
 ### printing
-You can set the loglevel with `--loglevel`. This will set the `logger.setLevel(x*10)`.
+You can set the loglevel with `--loglevel`. This will set the `logger.setLevel(...)`.
 There are quick commands `--quiet` (print none) and `--verbose` (print all). To restrict download and ffmpeg messages, you MUST use `--quiet`.
 
 You can disable color with `--no-color`.

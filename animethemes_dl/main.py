@@ -273,30 +273,29 @@ compression.add_argument(
 
 # =============================================================================
 printing = parser.add_argument_group('printing')
-printing.set_defaults(loglevel=2)
+printing.set_defaults(loglevel='INFO')
 printing.add_argument(
     '-q','--quiet',
-    const=6,
+    const='QUIET',
     dest='loglevel',
     action='store_const',
-    help="Does not print anything, basically `--loglevel 6`."
+    help="Does not print anything."
 )
 printing.add_argument(
     '--verbose',
-    const=1,
+    const=10,
     dest='loglevel',
     action='store_const',
     help="Prints verbose, basically `--loglevel 1`."
 )
+LOGLEVELS = {'QUIET':60,'CRITICAL':50,'ERROR':40,'WARNING':30,'INFO':20,'DEBUG':10}
 printing.add_argument(
     '--loglevel',
-    type=int,
-    choices=range(1,6),
-    metavar="INT[1-6]",
+    choices=["QUIET","CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"],
+    metavar="LOGLEVEL",
     dest='loglevel',
     action='store',
-    help="Sets the loglevel, 2 by default. Uses logging as the loglevel, \
-          meaning lower the level, the more information there will be."
+    help="Sets the loglevel, INFO by default. Uses the logging module levels."
 )
 printing.add_argument(
     '--no-color',
@@ -326,6 +325,7 @@ def load_settings(settings):
 
 def parse_args(args):
     filters = get_filters(args)
+    args.loglevel = LOGLEVELS[args.loglevel]
     options = _update_dict(OPTIONS,
     {
         "animelist": {
@@ -400,7 +400,7 @@ def main():
     args = parser.parse_args()
     options = parse_args(args)
     
-    logger.setLevel(args.loglevel*10)
+    logger.setLevel(args.loglevel)
     logger.debug(pformat(options))
     
     raise_for_errors(options)
