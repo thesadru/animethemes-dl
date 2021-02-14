@@ -31,7 +31,7 @@ from .utils import Measure, remove_bracket, simplify_title, add_honorific_dashes
 from ..tools import get_tempfile_path
 
 URL = "https://staging.animethemes.moe/api/search?q={}"
-MAXWORKERS = 5
+MAXWORKERS = 3
 session = Session()
 session.headers = {
     "User-Agent":get_random_useragent()
@@ -46,8 +46,6 @@ def api_search(title: str) -> Dict[str,List[AnimeThemeAnime]]:
     """
     Requests a search from the api.
     """
-    if session.requests_remaining < 5:
-        return None
     r = session.get(URL.format(title))
     session.requests_remaining = min(session.requests_remaining, int(r.headers.get('X-RateLimit-Remaining',0)))
     if r.status_code == 200:
@@ -153,7 +151,6 @@ def fetch_animethemes(animelist: List[Tuple[str,int,AnimeListSite]], use_cache=T
             
             except AnimeThemesTimeout as e:
                 logger.error(f'[error] {e.args[0]}')
-                print(futures)
             finally:
                 for future in futures: future[0].cancel()
     

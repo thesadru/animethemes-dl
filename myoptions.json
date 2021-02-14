@@ -1,6 +1,7 @@
 {
     "animelist": {
-        "username": "sadru"
+        "username": "sadru",
+        "site": "AniList"
     },
     "filter": {
         "smart": true,

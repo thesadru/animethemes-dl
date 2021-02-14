@@ -129,7 +129,7 @@ query userList($user: String) {
         score
         priority
         media {
-          idMal
+          id
           title {
             romaji
           }
@@ -177,7 +177,7 @@ query userList($user: String) {
             for entry in i['entries']:
                 titles.append({
                     'title': entry['media']['title']['romaji'],
-                    'malid': entry['media']['idMal'],
+                    'malid': entry['media']['id'],
                     'status': status,
                     'score': entry['score'],
                     'priority': entry['priority'],
