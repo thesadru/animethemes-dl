@@ -2,7 +2,7 @@
 Normalized AnimeList type.
 """
 from datetime import datetime
-from typing import Literal, TypeVar, TypedDict
+from typing import Literal, Tuple, TypedDict
 
 
 class AnimeListDict(TypedDict):
@@ -13,4 +13,5 @@ class AnimeListDict(TypedDict):
     priority: Literal[0,1,2]
     start_date: datetime
 
-AnimeListSite = Literal["Official Website", "Twitter", "aniDB", "AniList", "Anime-Planet", "Anime News Network", "Kitsu", "MyAnimeList", "Wiki"]
+AnimeListSite = str
+AnimeListEntry = Tuple[str,int,AnimeListSite]

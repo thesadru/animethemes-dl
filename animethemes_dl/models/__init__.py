@@ -10,5 +10,6 @@ if sys.version_info >= (3,9):
     from .options import Options
 else: # in case older python version is downloaded
     from typing import Any
-    __getattr__ = lambda attr: (lambda x: x) if attr=='Options' else Any
-    del Any
+    __getattr__ = lambda _: Any
+
+del sys

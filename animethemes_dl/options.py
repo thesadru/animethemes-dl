@@ -2,18 +2,19 @@
 Options for animethemes_dl.
 """
 import logging
+from copy import deepcopy
 
 from .models import Options
 
 logger = logging.getLogger('animethemes-dl')
-DEFAULT = {
+DEFAULT: Options = {
     'animelist': {
         'username': '',
         'site': 'MyAnimeList',
         'animelist_args': {},
         'minpriority':0,
         'minscore':0,
-        'range':[0,0]
+        'range':(0,0)
     },
     'filter': {
         'smart': False,
@@ -56,9 +57,9 @@ DEFAULT = {
     'ffmpeg': 'ffmpeg',
     'ignore_prompts': False
 }
-OPTIONS = Options(DEFAULT)
+OPTIONS: Options = deepcopy(DEFAULT)
 
-def _update_dict(old: dict, new: dict):
+def _update_options(old: Options, new: Options) -> Options:
     """
     Updates a dict with nested dicts.
     Skips options that do not exist.
@@ -66,7 +67,7 @@ def _update_dict(old: dict, new: dict):
     for k,v in new.items():
         if isinstance(v, dict):
             if k in old:
-                old[k] = _update_dict(old[k],v)
+                old[k] = _update_options(old[k],v)
             else:
                 logger.error(f'Cannot change option category {repr(k)}; does not exist.')
         else:
@@ -83,9 +84,9 @@ def setOptions(options: Options):
     Look at `animethemes_dl.OPTIONS` for defaults.
     """
     global OPTIONS
-    OPTIONS = Options(_update_dict(OPTIONS,options))
+    OPTIONS = _update_options(OPTIONS,options)
     
-    logger.debug(f'Changed {len(options)} categories in options.')
+    logger.debug(f'Changed options.')
 
 if __name__ == "__main__":
     import json

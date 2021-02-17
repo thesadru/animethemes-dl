@@ -6,8 +6,7 @@ import re
 import string
 from os import PathLike
 from os.path import join, realpath, splitext
-from pprint import pprint
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from ..models import (AnimeListSite, AnimeThemeAnime, AnimeThemeEntry,
                       AnimeThemeTheme, AnimeThemeVideo, DownloadData)
@@ -121,17 +120,17 @@ def generate_path(
     filename = strip_illegal_chars(filename)
     
     if OPTIONS['download']['video_folder']:
-        video = realpath(join(OPTIONS['download']['video_folder'],filename))
+        video_path = realpath(join(OPTIONS['download']['video_folder'],filename))
     else:
-        video = None
+        video_path = None
         
     if OPTIONS['download']['audio_folder']:
-        audio = realpath(join(OPTIONS['download']['audio_folder'],filename))
-        audio = splitext(audio)[0]+'.mp3'
+        audio_path = realpath(join(OPTIONS['download']['audio_folder'],filename))
+        audio_path = splitext(audio_path)[0]+'.mp3'
     else:
-        audio = None
+        audio_path = None
     
-    return video,audio
+    return video_path,audio_path
 
 def pick_best_entry(theme: AnimeThemeTheme) -> Optional[Tuple[AnimeThemeEntry,AnimeThemeVideo]]:
     """
@@ -175,8 +174,8 @@ def parse_download_data(data: List[AnimeThemeAnime]) -> List[DownloadData]:
         
         last_group = None
         for tracknumber,theme in enumerate(anime['themes']):
-            # remove unwanted tags in song title (feat and brackets)
-            match = FEATURED_RE.match(theme['song']['title'])
+            # # remove unwanted tags in song title (feat and brackets)
+            match = FEATURED_RE.match(theme['song']['title']) # .* always matches
             theme['song']['title'],featured,comments,version = match.groups()
 
             # filtering:
@@ -265,19 +264,16 @@ if __name__ == "__main__":
 
     from .animethemes import fetch_animethemes
     
-    if len(sys.argv)==1:
-        pprint(get_download_data('sadru'))
-    else:
-        with open('hints/formatter.json','w') as file:
-            data = fetch_animethemes([(31240,'Re:Zero')])[0]
-            json.dump(
-                get_formatter(
-                    anime=data,
-                    theme=data['themes'][0],
-                    entry=data['themes'][0]['entries'][0],
-                    video=data['themes'][0]['entries'][0]['videos'][0],
-                    song= data['themes'][0]['song']
-                ),
-                file,
-                indent=4
-            )
+    with open('hints/formatter.json','w') as file:
+        data = fetch_animethemes([(31240,'Re:Zero')])[0]
+        json.dump(
+            get_formatter(
+                anime=data,
+                theme=data['themes'][0],
+                entry=data['themes'][0]['entries'][0],
+                video=data['themes'][0]['entries'][0]['videos'][0],
+                song= data['themes'][0]['song']
+            ),
+            file,
+            indent=4
+        )

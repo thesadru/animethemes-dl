@@ -9,7 +9,7 @@ from pprint import pformat
 
 from .parsers import get_download_data, ANIMELISTSITES
 from .downloader import batch_download
-from .options import OPTIONS, _update_dict
+from .options import OPTIONS, _update_options
 from .tools import repair
 
 logger = logging.getLogger('animethemes-dl')
@@ -326,7 +326,7 @@ def load_settings(settings):
 def parse_args(args):
     filters = get_filters(args)
     args.loglevel = LOGLEVELS[args.loglevel]
-    options = _update_dict(OPTIONS,
+    options = _update_options(OPTIONS,
     {
         "animelist": {
             "username": args.username,
@@ -375,7 +375,7 @@ def parse_args(args):
         "no_colors": args.no_color,
         "ffmpeg": args.ffmpeg
     })
-    return _update_dict(options,load_settings(args.settings))
+    return _update_options(options,load_settings(args.settings))
 
 def check_errors(options):
     errors = []

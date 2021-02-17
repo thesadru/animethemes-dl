@@ -14,6 +14,7 @@ Parses the animethemes api, getting data by title.
 - save data to cache
 - return animethemes
 """
+from animethemes_dl.models.animelist import AnimeListEntry
 import json
 import logging
 from os.path import isfile
@@ -27,7 +28,7 @@ from requests import Session
 from ..errors import AnimeThemesTimeout
 from ..models import AnimeThemeAnime, AnimeListSite
 from ..options import OPTIONS
-from .utils import Measure, remove_bracket, simplify_title, add_honorific_dashes
+from .utils import Measure, remove_bracket, simplify_title
 from ..tools import get_tempfile_path
 
 URL = "https://staging.animethemes.moe/api/search?q={}"
@@ -36,7 +37,6 @@ session = Session()
 session.headers = {
     "User-Agent":get_random_useragent()
 }
-session.requests_remaining = float('inf')
 CACHEFILE = get_tempfile_path('animethemes.json')
 
 logger = logging.getLogger('animethemes-dl')
@@ -47,7 +47,6 @@ def api_search(title: str) -> Dict[str,List[AnimeThemeAnime]]:
     Requests a search from the api.
     """
     r = session.get(URL.format(title))
-    session.requests_remaining = min(session.requests_remaining, int(r.headers.get('X-RateLimit-Remaining',0)))
     if r.status_code == 200:
         return r.json()
     elif r.status_code == 429:
@@ -71,10 +70,13 @@ def fetch_anime(title: str, alid: int, alsite: AnimeListSite) -> Optional[AnimeT
     """
     Requests an anime search with a title.
     alid is the external id in list site and alsite is the name of the anime list site.
-    Can modify the title and send a request up to 3 times, before finding the right data.
+    May make an extra request before finding the right data.
     """
-    for func in (remove_bracket,simplify_title,add_honorific_dashes):
-        title = func(title)
+    for func in (remove_bracket,simplify_title):
+        new_title = func(title)
+        if title == new_title: continue
+        else: title = new_title
+        
         data = api_search(title)
         if data is None: return None
         anime = verify_anime(data['anime'],alid,alsite)
@@ -82,10 +84,14 @@ def fetch_anime(title: str, alid: int, alsite: AnimeListSite) -> Optional[AnimeT
     
     return None
 
-def load_cache(animelist: List[Tuple[str,int,AnimeListSite]]) -> (
-        Tuple[List[Tuple[str,int,AnimeListSite]], Dict[int,AnimeThemeAnime], Dict[Tuple[AnimeListSite,int],Tuple[str,int]]]):
+def load_cache(animelist: List[AnimeListEntry]) -> Tuple[List[AnimeListEntry], Dict[int,AnimeThemeAnime], Dict[Tuple[AnimeListSite,int],Tuple[str,int]]]:
     """
     Loads cache and figures out which entries need to be updated.
+    
+    Retruns:
+        animelist:   [AnimeListEntry,...]
+        animethemes: {int:AnimeThemeAnime,...}
+        unavalible:  {(AnimeListSite,int):(str,int),...}
     """
     current_time = time.time()
     logger.debug(f'Loading animethemes data from {CACHEFILE}')
@@ -93,8 +99,8 @@ def load_cache(animelist: List[Tuple[str,int,AnimeListSite]]) -> (
     
     with open(CACHEFILE) as file:
         data = json.load(file)
-        animethemes: list[AnimeThemeAnime] = sorted(data['anime'], key=lambda x:x['_fetched_at'])
-        unavalible: dict[tuple[AnimeListSite,int],tuple[str,int]] = {(i['site'],i['alid']):(i['title'],i['fetched_at']) for i in data['unavalible_anime']}
+        animethemes = sorted(data['anime'], key=lambda x:x['_fetched_at'])
+        unavalible = {(i['site'],i['alid']):(i['title'],i['fetched_at']) for i in data['unavalible_anime']}
 
     for anime in animethemes:
         for resource in anime['resources']:
@@ -122,7 +128,7 @@ def save_cache(animethemes: List[AnimeThemeAnime], unavalible: Dict[Tuple[AnimeL
             'unavalible_anime':unavalible
         },file)
 
-def fetch_animethemes(animelist: List[Tuple[str,int,AnimeListSite]], use_cache=True) -> List[AnimeThemeAnime]:
+def fetch_animethemes(animelist: List[AnimeListEntry], use_cache=True) -> List[AnimeThemeAnime]:
     m = Measure()
     
     if use_cache and isfile(CACHEFILE):
@@ -137,8 +143,8 @@ def fetch_animethemes(animelist: List[Tuple[str,int,AnimeListSite]], use_cache=T
             
             try:
                 while futures:
-                    anime,al = futures.pop()
-                    anime = anime.result()
+                    ft_anime,al = futures.pop()
+                    anime = ft_anime.result()
                     if anime is not None:
                         anime['_fetched_at'] = time.time()
                         animethemes[anime['id']] = anime

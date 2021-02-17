@@ -1,25 +1,24 @@
 """
 utilities for animethemes_dl.parsers
 """
-import re
 import time
 from typing import Any
+from urllib.parse import quote
 
 
-def add_url_kwargs(url: str, kwargs: dict[str,Any]={}) -> str:
+def add_url_kwargs(url: str, kwargs: dict[str,Any]) -> str:
     """
     Adds url kwargs to the end of the url.
     """
     if not kwargs:
         return url
-    kwargs = '&'.join(f'{k}={v}' for k,v in kwargs.items())
-    return url+'?'+kwargs
+    return url+'?'+'&'.join(k+'='+quote(str(v)) for k,v in kwargs.items())
 
 def remove_bracket(string: str):
     """
     removes brackets and stuff in them from strings
     """
-    return string.replace('[','(').split('(')[0]
+    return string.replace('[','(').split('(')[0].strip()
 
 def simplify_title(title: str):
     """
@@ -28,12 +27,6 @@ def simplify_title(title: str):
     return ''.join(
         i for i in title if i.isalpha() or i==' '
     ).lower().strip()
-
-def add_honorific_dashes(string: str):
-    """
-    Adds dashes "-" in front of honorifics.
-    """
-    return re.sub(r'[^-](san|chan|kun|sama|tan)',r'-\1',string)
 
 class Measure:
     """

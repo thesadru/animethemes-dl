@@ -45,7 +45,6 @@ class DownloadOptions(TypedDict):
     ascii: bool
     timeout: int
     retries: int
-    sort: str
     max_cache_age: int
     force_videos: List[int]
 

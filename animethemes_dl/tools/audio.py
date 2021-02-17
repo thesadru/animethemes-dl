@@ -10,7 +10,7 @@ from typing import Optional, Tuple
 
 import requests
 from mutagen.id3 import ID3, ID3TimeStamp
-from mutagen.id3._frames import *
+import mutagen.id3._frames as frames
 
 from ..errors import FfmpegException
 from ..models import Metadata
@@ -41,6 +41,7 @@ def find_file(s: str, directory: str='.') -> Optional[PathLike]:
     for path in listdir(directory):
         if s in path:
             return join(directory,path)
+    return None
 
 def get_coverart(metadata: Metadata, malid: int) -> Tuple[bytes,str,str]:
     """
@@ -53,11 +54,11 @@ def get_coverart(metadata: Metadata, malid: int) -> Tuple[bytes,str,str]:
     if coverart_folder and isfile(coverart_file):
         with open(coverart_file,'rb') as file:
             data = file.read()
-        mimetype = guess_type(coverart_file)
+        mimetype = guess_type(coverart_file)[0]
     else:
         url = metadata['coverarts'][min(resolution, len(metadata['coverarts'])-1)]
         data = requests.get(url,headers={'User-Agent':get_random_useragent()}).content
-        mimetype = guess_type(url)
+        mimetype = guess_type(url)[0]
         if coverart_folder:
             with open(coverart_file,'wb') as file:
                 file.write(data)
@@ -74,23 +75,23 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, malid: int=None):
     logger.info(f"[tag] Adding metadata{' (w/coverart) 'if OPTIONS['coverart']['folder'] else' '}for {basename(path)}")
     audio = ID3(path)
     audio.clear()
-    audio.add(TALB(text=metadata['album']))
+    audio.add(frames.TALB(text=metadata['album']))
     # audio.add(TPOS(text=metadata['disc'])) # I want the series, but audio players want an integer. put off for now
-    audio.add(TDRC(text=[ ID3TimeStamp(str(metadata['year'])) ]))
-    audio.add(TRCK(text=str(metadata['track']))) # useless since there's no discs, I'll keep anyways.
-    audio.add(TIT2(text=metadata['title']))
+    audio.add(frames.TDRC(text=[ ID3TimeStamp(str(metadata['year'])) ]))
+    audio.add(frames.TRCK(text=str(metadata['track']))) # useless since there's no discs, I'll keep anyways.
+    audio.add(frames.TIT2(text=metadata['title']))
     # audio.add(TPE2(text=metadata['artists'])) # ID3 is not made for singers, doesn't have a tag (TPE1 and TPE2 are wrong)
-    audio.add(TXXX(text=metadata['series'],desc='series'))
-    audio.add(TXXX(text=metadata['themetype'],desc='themetype'))
-    audio.add(TXXX(text=str(metadata['version']),desc='version'))
-    audio.add(TXXX(text=str(metadata['videoid']),desc='videoid'))
-    audio.add(TXXX(text=metadata['notes'],desc='notes'))
-    audio.add(TCON(text=metadata['genre']))
-    audio.add(TENC(text=metadata['encodedby']))
-    audio.add(TIT1(text=metadata['cgroup']))
+    audio.add(frames.TXXX(text=metadata['series'],desc='series'))
+    audio.add(frames.TXXX(text=metadata['themetype'],desc='themetype'))
+    audio.add(frames.TXXX(text=str(metadata['version']),desc='version'))
+    audio.add(frames.TXXX(text=str(metadata['videoid']),desc='videoid'))
+    audio.add(frames.TXXX(text=metadata['notes'],desc='notes'))
+    audio.add(frames.TCON(text=metadata['genre']))
+    audio.add(frames.TENC(text=metadata['encodedby']))
+    audio.add(frames.TIT1(text=metadata['cgroup']))
     if malid is not None and OPTIONS['coverart']['folder']:
         coverart,desc,mimetype = get_coverart(metadata,malid)
-        audio.add(APIC(encoding=3,mime=mimetype,desc=desc,type=3,data=coverart))
+        audio.add(frames.APIC(encoding=3,mime=mimetype,desc=desc,type=3,data=coverart))
     
     audio.save()
 

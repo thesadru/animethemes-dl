@@ -5,5 +5,5 @@ animethemes.tar
 # binaries
 __pycache__*
 ffmpeg.exe
-# personal files
-.vscode/
+# dot files
+.*/

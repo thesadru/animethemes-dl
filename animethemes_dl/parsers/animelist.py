@@ -2,12 +2,12 @@
 File for fetching and parsing data of animelists.
 Made to be extendible with classes.
 """
+from animethemes_dl.models.animelist import AnimeListEntry
 import json
 import logging
 from datetime import datetime
-from enum import Enum
 from itertools import count
-from typing import Any, List, Tuple, Type
+from typing import Any, List
 
 import requests
 
@@ -34,7 +34,7 @@ class AnimeListBase:
         """Parses raw data, returns normalized one."""
         ...
     
-    def filter(self, data: List[AnimeListDict]) -> List[Tuple[str,int,AnimeListSite]]:
+    def filter(self, data: List[AnimeListDict]) -> List[AnimeListEntry]:
         """
         Filters parsed data, looks at status, score, priority and start date.
         """
@@ -51,7 +51,7 @@ class AnimeListBase:
             
         return titles
     
-    def get_titles(self, username: str=...) -> List[Tuple[str,int,AnimeListSite]]:
+    def get_titles(self, username: str) -> List[AnimeListEntry]:
         """
         Gets titles by fetching or loading raw data, then parsing it.
         """
@@ -151,10 +151,9 @@ query userList($user: String) {
         json_arg = {'query': self.query, 'variables': kwargs}
         
         r = requests.post(self.url, json=json_arg)
-        if r.status_code == 200:
-            data = r.json()
-        else:
-            return r.raise_for_status()
+        r.raise_for_status()
+        
+        data = r.json()
         
         if "errors" in data:
             errors = '; '.join(i['message'] for i in data['errors'])

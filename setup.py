@@ -5,7 +5,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='animethemes-dl',
-    version='2.2.2',
+    version='2.2.2.1',
     author='thesadru',
     author_email='dan0.suman@gmail.com',
     license='MIT License',
