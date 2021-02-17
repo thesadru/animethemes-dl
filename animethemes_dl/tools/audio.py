@@ -93,7 +93,7 @@ def add_id3_metadata(path: PathLike, metadata: Metadata, malid: int=None):
         coverart,desc,mimetype = get_coverart(metadata,malid)
         audio.add(frames.APIC(encoding=3,mime=mimetype,desc=desc,type=3,data=coverart))
     
-    audio.save()
+    audio.save(v2_version=OPTIONS['id3v2_version'])
 
 if __name__ == "__main__":
     import sys

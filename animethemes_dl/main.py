@@ -35,6 +35,14 @@ utils.add_argument(
     type=realpath,
     help="path to ffmpeg, in case it's not in PATH"
 )
+utils.set_defaults(id3v2_version=4)
+utils.add_argument(
+    '--use-id3v23',
+    action='store_const',
+    dest='id3v2_version',
+    const=3,
+    help="Uses ID3v2.3 instead of v2.4. For older systems that do not support v2.4."
+)
 utils.add_argument(
     '-s','--settings','--options',
     type=realpath,
@@ -373,7 +381,8 @@ def parse_args(args):
         "statuses": args.statuses,
         "quiet": args.loglevel>logging.CRITICAL,
         "no_colors": args.no_color,
-        "ffmpeg": args.ffmpeg
+        "ffmpeg": args.ffmpeg,
+        "id3v2_version": args.id3v2_version
     })
     return _update_options(options,load_settings(args.settings))
 

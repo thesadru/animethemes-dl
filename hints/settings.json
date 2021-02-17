@@ -52,5 +52,6 @@
     "quiet": false,
     "no_colors": false,
     "ffmpeg": "ffmpeg",
+    "id3v2_version": 4,
     "ignore_prompts": false
 }

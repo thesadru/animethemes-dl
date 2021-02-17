@@ -25,5 +25,6 @@
         "base_dir": "audio"
     },
     "statuses": [1,2],
-    "ffmpeg": "ffmpeg"
+    "ffmpeg": "ffmpeg",
+    "id3v2_version":3
 }

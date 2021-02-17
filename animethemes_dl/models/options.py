@@ -58,4 +58,5 @@ class Options(TypedDict):
     quiet: bool
     no_colors: bool
     ffmpeg: PathLike
+    id3v2_version: Literal[3,4]
     ignore_prompts: bool

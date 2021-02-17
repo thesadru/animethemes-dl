@@ -55,6 +55,7 @@ DEFAULT: Options = {
     'quiet': False,
     'no_colors':False,
     'ffmpeg': 'ffmpeg',
+    'id3v2_version':4,
     'ignore_prompts': False
 }
 OPTIONS: Options = deepcopy(DEFAULT)

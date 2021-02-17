@@ -144,6 +144,8 @@ You can disable color with `--no-color`.
 ### utilities
 In case you haven't added ffmpeg to path, you can set the path with `--ffmpeg`.
 
+In case the mp3 tags are not showing, you can specify to `--use-id3v23`, that will allow support for older systems.
+
 You can `--repair` in case the script made some errors or you picked wrong options. This will delete unexpected files and readd metadata.
 
 ### settings
@@ -202,6 +204,7 @@ The default options are:
     "quiet": false,
     "no_colors": false,
     "ffmpeg": "ffmpeg",
+    "id3v2_version":4,
     "ignore_prompts": false
 }
 ```
