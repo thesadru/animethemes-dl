@@ -32,7 +32,7 @@ utils = parser.add_argument_group('utilities')
 utils.add_argument(
     '--ffmpeg',
     metavar="PATH",
-    type=realpath,
+    default='ffmpeg',
     help="path to ffmpeg, in case it's not in PATH"
 )
 utils.set_defaults(id3v2_version=4)
@@ -341,7 +341,8 @@ def parse_args(args):
             "site": args.site,
             "animelist_args": args.animelist_args,
             "minpriority": args.minpriority,
-            "minscore": args.minscore
+            "minscore": args.minscore,
+            "range":args.range
         },
         "filter": {
             'smart': args.smart,

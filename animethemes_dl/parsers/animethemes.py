@@ -46,6 +46,9 @@ def api_search(title: str) -> Dict[str,List[AnimeThemeAnime]]:
     """
     Requests a search from the api.
     """
+    if not title:
+        return None # an empty anime title
+    
     r = session.get(URL.format(title))
     if r.status_code == 200:
         return r.json()
@@ -73,12 +76,11 @@ def fetch_anime(title: str, alid: int, alsite: AnimeListSite) -> Optional[AnimeT
     May make an extra request before finding the right data.
     """
     for func in (remove_bracket,simplify_title):
-        new_title = func(title)
-        if title == new_title: continue
-        else: title = new_title
+        title = func(title)
         
         data = api_search(title)
-        if data is None: return None
+        if data is None: return None # internal error?
+        
         anime = verify_anime(data['anime'],alid,alsite)
         if anime is not None: return anime
     

@@ -73,7 +73,11 @@ class AnimeListBase:
         titles = self.filter(data)
         
         logger.info(f'[get] Got data from {self.name} in {measure()}s.')
-        return titles
+        if any(OPTIONS['animelist']['range']):
+            s,e = OPTIONS['animelist']['range']
+            return titles[s:e]
+        else:
+            return titles
 
 # =============================================================================
 
