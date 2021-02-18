@@ -139,7 +139,7 @@ def fetch_animethemes(animelist: List[AnimeListEntry], use_cache=True) -> List[A
     
     if animelist:
         with ThreadPoolExecutor(MAXWORKERS) as executor:
-            futures = [(executor.submit(fetch_anime, *al),al) for al in reversed(animelist)]
+            futures = [(executor.submit(fetch_anime, *al),al) for al in animelist][::-1]
             
             try:
                 while futures:
@@ -158,7 +158,7 @@ def fetch_animethemes(animelist: List[AnimeListEntry], use_cache=True) -> List[A
             except AnimeThemesTimeout as e:
                 logger.error(f'[error] {e.args[0]}')
             finally:
-                for future in futures: future[0].cancel()
+                for f in futures: f[0].cancel()
     
     animethemes = list(animethemes.values())
     if use_cache and animelist:
@@ -166,7 +166,7 @@ def fetch_animethemes(animelist: List[AnimeListEntry], use_cache=True) -> List[A
     
     if animelist:
         if logger.level <= logging.INFO: print()
-        logger.info(f"[get] Got {fetched+failed}/{total} entries{(f' ({failed} unavalible) ' if failed else ' ')}from animethemes.moe")
+        logger.info(f"[get] Got {fetched+failed}/{total} entries{(f' ({failed} unavalible) ' if failed else ' ')}from animethemes.moe in {m()}s")
     else:
         logger.info(f'[get] Loaded {len(animethemes)} cached entries from animethemes.moe')
     

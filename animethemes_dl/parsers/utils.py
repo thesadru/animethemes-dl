@@ -2,11 +2,10 @@
 utilities for animethemes_dl.parsers
 """
 import time
-from typing import Any
 from urllib.parse import quote
 
 
-def add_url_kwargs(url: str, kwargs: dict[str,Any]) -> str:
+def add_url_kwargs(url: str, kwargs) -> str:
     """
     Adds url kwargs to the end of the url.
     """
