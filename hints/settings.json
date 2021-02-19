@@ -13,6 +13,7 @@
     "filter": {
         "smart": false,
         "no_copy": false,
+        "type": null,
         "spoiler": null,
         "nsfw": null,
         "resolution": 0,

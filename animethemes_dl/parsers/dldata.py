@@ -179,6 +179,9 @@ def parse_download_data(data: List[AnimeThemeAnime]) -> List[DownloadData]:
             theme['song']['title'],featured,comments,version = match.groups()
 
             # filtering:
+            # theme type
+            if OPTIONS['filter']['type'] is not None and OPTIONS['filter']['type']!=theme['type']:
+                continue
             # groups (for example dubs)
             if last_group is not None and theme['group']!=last_group:
                 continue 

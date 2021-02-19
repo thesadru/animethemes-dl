@@ -112,6 +112,22 @@ filters.add_argument(
     action='store_true',
     help="Does not download songs with the same name, keeps only the first one."
 )
+theme_type = filters.add_mutually_exclusive_group()
+parser.set_defaults(theme_type=None)
+theme_type.add_argument(
+    '--OP','--only-op',
+    action='store_const',
+    dest='theme_type',
+    const='OP',
+    help="Downloads only openings."
+)
+theme_type.add_argument(
+    '--ED','--only-ed',
+    action='store_const',
+    dest='theme_type',
+    const='ED',
+    help="Downloads only endings."
+)
 filters.add_argument(
     '--required-tags','--rtags',
     default=[],
@@ -347,6 +363,7 @@ def parse_args(args):
         "filter": {
             'smart': args.smart,
             'no_copy': args.no_copy,
+            'type': args.theme_type,
             'spoiler': filters['spoiler'],
             'nsfw': filters['nsfw'],
             'resolution': args.min_resolution,

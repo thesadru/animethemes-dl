@@ -19,6 +19,7 @@ DEFAULT: Options = {
     'filter': {
         'smart': False,
         'no_copy': False,
+        'type': None,
         'spoiler': None,
         'nsfw': None,
         'resolution':0,

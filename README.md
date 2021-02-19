@@ -44,6 +44,8 @@ There are filters for minimum score and priority.
 `--range <start> <end>` only gets a slice of the animelist.
 
 ### tag filters
+To download only openings or only endings, use `--OP` or `--ED`
+
 By default, you can just use a `--smart` filter, that takes out all the dialogue. This works by removing all themes that contains a part of the episode and spoilers at the same time. This works 95% of the time.
 
 Since animethemes can have a single song bound to multiple anime, `--no-copy` filters them.
@@ -160,14 +162,12 @@ The default options are:
         "animelist_args": {},
         "minpriority": 0,
         "minscore": 0,
-        "range": [
-            0,
-            0
-        ]
+        "range": [0,0]
     },
     "filter": {
         "smart": false,
         "no_copy": false,
+        "type": null,
         "spoiler": null,
         "nsfw": null,
         "resolution": 0,
@@ -204,7 +204,7 @@ The default options are:
     "quiet": false,
     "no_colors": false,
     "ffmpeg": "ffmpeg",
-    "id3v2_version":4,
+    "id3v2_version": 4,
     "ignore_prompts": false
 }
 ```
@@ -223,14 +223,14 @@ import animethemes_dl.parsers as parsers
 parsers.fetch_animethemes(username) # fetchess raw data
 parsers.get_download_data(username) # gets download data
 
-# models module uses typedDict to help language servers
+# models module uses typedDict to help linters
 import animethemes_dl.models as models
 animelist: AnimeThemeAnime = _myanimefunc()
-metadata: Metadata = _mymetadatafunc2()
+metadata: Metadata = _mymetadatafunc()
 
 # tools have multiple tools used for several stuff
 import animethemes_dl.tools as tools
-tools.ffmpeg_covert(webm_file,mp3_file) # converts a webm file
+tools.ffmpeg_convert(webm_file,mp3_file) # converts a webm file
 tools.COLORS['progress'] = Fore.CYAN # changes colors
 tools.compress_files(base,'zip',root) # compresses a direcotory
 tools.update_metadata(
@@ -272,5 +272,6 @@ except FfmpegException:
 # TODO
 - code optimizations
 - improve code documentation
+- make a better README (too complicated rn)
 - concurrent downloads, since animethemes disabled multithreaded dl.
-- fix replacing themes that are binded to multiple anime when using `--update`
+- support for aria2c

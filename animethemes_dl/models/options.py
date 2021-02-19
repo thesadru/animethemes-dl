@@ -16,6 +16,7 @@ class AnimeListOptions(TypedDict):
 class FilterOptions(TypedDict):
     smart: bool
     no_copy: bool
+    type: Literal['OP','ED',None]
     spoiler: Optional[bool]
     nsfw: Optional[bool]
     resolution: int
